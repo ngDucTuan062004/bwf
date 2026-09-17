@@ -1,0 +1,12 @@
+{
+  "status": "done",
+  "origin": "plan",
+  "planTitle": "README + package.json + verification",
+  "dependsOn": [
+    "03-seed-data--datajson-t-aaatxt"
+  ],
+  "schemaVersion": 1,
+  "startedAt": "2026-09-17T02:58:09.844Z",
+  "summary": "README.md với hướng dẫn chạy local (vercel dev), deploy Vercel (KV store, ADMIN_PASSWORD), cách sử dụng, tóm tắt thể lệ. Verification toàn bộ pass: syntax JS (app.js, api/data.js, api/auth.js), JSON parse (data.json, package.json, vercel.json), index.html link styles.css + app.js, không còn inline style/script.",
+  "completedAt": "2026-09-17T02:59:14.534Z"
+}

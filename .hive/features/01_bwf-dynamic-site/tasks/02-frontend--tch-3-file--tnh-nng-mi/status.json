@@ -1,0 +1,12 @@
+{
+  "status": "done",
+  "origin": "plan",
+  "planTitle": "Frontend — tách 3 file + tính năng mới",
+  "dependsOn": [
+    "01-backend-api--vercel-serverless--kv"
+  ],
+  "schemaVersion": 1,
+  "startedAt": "2026-09-17T02:54:40.908Z",
+  "summary": "Tách frontend thành 3 file: styles.css (toàn bộ CSS + style mới cho modal/banner/nút tự sinh), app.js (logic mới: load API, admin auth, auto round-robin, content management modal, score entry, save server), index.html (link file ngoài, bỏ inline). Syntax check pass.",
+  "completedAt": "2026-09-17T02:57:15.917Z"
+}

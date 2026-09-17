@@ -1,0 +1,12 @@
+{
+  "status": "done",
+  "origin": "plan",
+  "planTitle": "Seed data — data.json từ aaa.txt",
+  "dependsOn": [
+    "02-frontend--tch-3-file--tnh-nng-mi"
+  ],
+  "schemaVersion": 1,
+  "startedAt": "2026-09-17T02:57:19.980Z",
+  "summary": "data.json mới: 6 nội dung (Đơn nam 8 VĐV/2 bảng, Đơn nữ N1/N2 6+6/2 bảng, Đôi nam 6 cặp Swiss, Đôi nam nữ N1/N2 8+6 cặp Swiss), event 30/9-04/10/2026 tại Sân cầu lông Đồng Đội, matches rỗng. JSON parse OK, số liệu khớp aaa.txt.",
+  "completedAt": "2026-09-17T02:58:05.733Z"
+}
