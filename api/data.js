@@ -1,13 +1,17 @@
-import { Redis } from '@upstash/redis';
+import { createClient } from '@supabase/supabase-js';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DATA_KEY = 'bwf:data';
+const TABLE = 'app_data';
+const ROW_ID = 1;
 
-// Đọc env UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN (Vercel Marketplace tự set)
-const redis = Redis.fromEnv();
+// SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY — chỉ dùng server-side (Vercel env vars)
+const supabase = createClient(
+  process.env.SUPABASE_URL || 'http://localhost:54321',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || 'dummy-key'
+);
 
 function loadSeed() {
   try {
@@ -28,10 +32,14 @@ export default async function handler(req, res) {
   // GET: đọc dữ liệu (công khai)
   if (req.method === 'GET') {
     try {
-      const data = await redis.get(DATA_KEY);
-      if (data) return res.status(200).json(data);
+      const { data, error } = await supabase
+        .from(TABLE)
+        .select('data')
+        .eq('id', ROW_ID)
+        .single();
+      if (!error && data && data.data) return res.status(200).json(data.data);
     } catch (e) {
-      // Redis chưa cấu hình (chạy local) → fallback seed
+      // Supabase chưa cấu hình (chạy local) → fallback seed
     }
     const seed = loadSeed();
     if (seed) return res.status(200).json(seed);
@@ -45,12 +53,13 @@ export default async function handler(req, res) {
     if (!process.env.ADMIN_PASSWORD || token !== process.env.ADMIN_PASSWORD) {
       return res.status(401).json({ error: 'Không có quyền chỉnh sửa' });
     }
-    const data = req.body;
-    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    const body = req.body;
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
       return res.status(400).json({ error: 'Dữ liệu không hợp lệ' });
     }
     try {
-      await redis.set(DATA_KEY, data);
+      const { error } = await supabase.from(TABLE).upsert({ id: ROW_ID, data: body });
+      if (error) throw error;
       return res.status(200).json({ ok: true });
     } catch (e) {
       return res.status(500).json({ error: 'Lưu thất bại: ' + e.message });

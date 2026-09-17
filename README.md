@@ -9,7 +9,7 @@ Trang web động theo dõi lịch thi đấu, bảng xếp hạng và kết qu�
 - **Chế độ chỉnh sửa** (cần mật khẩu quản trị): thêm/xoá VĐV, thêm/xoá trận, nhập tỉ số
 - **⚡ Tự sinh lịch vòng bảng**: mỗi cặp gặp nhau 1 lần (round-robin)
 - **Quản lý nội dung**: thêm/sửa/xoá nội dung, bảng, VĐV bằng form
-- **Lưu dữ liệu trên server** (Upstash Redis qua Vercel Marketplace) — mọi người cùng thấy thay đổi ngay
+- **Lưu dữ liệu trên server** (Supabase Postgres — gói free) — mọi người cùng thấy thay đổi ngay
 
 ## Cấu trúc
 
@@ -17,12 +17,13 @@ Trang web động theo dõi lịch thi đấu, bảng xếp hạng và kết qu�
 ├── index.html        # Cấu trúc trang
 ├── styles.css        # Toàn bộ CSS
 ├── app.js            # Toàn bộ logic frontend
-├── data.json         # Dữ liệu mặc định (seed khi KV chưa có dữ liệu)
+├── data.json         # Dữ liệu mặc định (seed khi database chưa có dữ liệu)
 ├── api/
 │   ├── data.js       # GET: đọc dữ liệu · PUT: lưu dữ liệu (cần mật khẩu)
 │   └── auth.js       # POST: xác thực mật khẩu quản trị
+├── supabase-setup.sql # SQL tạo bảng (chạy 1 lần trên Supabase)
 ├── vercel.json       # Cấu hình Vercel
-└── package.json      # Dependency @upstash/redis
+└── package.json      # Dependency @supabase/supabase-js
 ```
 
 ## Chạy local
@@ -32,22 +33,27 @@ npm install
 vercel dev
 ```
 
-Mở `http://localhost:3000`. Khi chưa cấu hình Redis, API trả dữ liệu từ `data.json` (chế độ đọc — chưa lưu được).
+Mở `http://localhost:3000`. Khi chưa cấu hình Supabase, API trả dữ liệu từ `data.json` (chế độ đọc — chưa lưu được).
 
 ## Deploy lên Vercel
 
 1. **Push code lên GitHub** rồi import vào Vercel (hoặc dùng CLI: `vercel`).
 
-2. **Tạo Upstash Redis** (Vercel Dashboard → Storage → Create Database → **Upstash Redis**):
-   - Kết nối database với project. Vercel tự thêm các biến môi trường `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` (và `UPSTASH_REDIS_REST_READ_ONLY_TOKEN`).
-   - > Lưu ý: Vercel KV cũ đã bị ngừng (sunset 12/2024). Dùng **Upstash Redis** từ Vercel Marketplace — đây là dịch vụ thay thế chính thức.
+2. **Tạo Supabase project** (https://supabase.com — gói Free $0):
+   - New project → đặt tên + mật khẩu database → tạo.
+   - Mở **SQL Editor** → paste toàn bộ nội dung `supabase-setup.sql` → **Run** (tạo bảng `app_data`).
 
-3. **Đặt mật khẩu quản trị**:
-   - Vercel Dashboard → Project → Settings → Environment Variables
-   - Thêm biến `ADMIN_PASSWORD` với giá trị mật khẩu bạn muốn (VD: `bwf2026`)
+3. **Lấy thông tin kết nối** (Project Settings → **API**):
+   - `Project URL` → chính là `SUPABASE_URL`
+   - `service_role` key (⚠️ giữ bí mật, chỉ dùng server-side) → chính là `SUPABASE_SERVICE_ROLE_KEY`
+
+4. **Đặt biến môi trường trên Vercel** (Project → Settings → Environment Variables):
+   - `SUPABASE_URL` = Project URL
+   - `SUPABASE_SERVICE_ROLE_KEY` = service_role key
+   - `ADMIN_PASSWORD` = mật khẩu quản trị bạn muốn (VD: `bwf2026`)
    - Redeploy để áp dụng.
 
-4. **Mở trang** — dữ liệu ban đầu lấy từ `data.json`. Khi admin chỉnh sửa lần đầu, dữ liệu được lưu vào Redis và từ đó mọi người đọc từ Redis.
+5. **Mở trang** — dữ liệu ban đầu lấy từ `data.json`. Khi admin chỉnh sửa lần đầu, dữ liệu được lưu vào Supabase và từ đó mọi người đọc từ database.
 
 ## Cách sử dụng
 
