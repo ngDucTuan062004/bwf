@@ -43,15 +43,18 @@ Mở `http://localhost:3000`. Khi chưa cấu hình Supabase, API trả dữ li�
    - New project → đặt tên + mật khẩu database → tạo.
    - Mở **SQL Editor** → paste toàn bộ nội dung `supabase-setup.sql` → **Run** (tạo bảng `app_data`).
 
-3. **Lấy thông tin kết nối** (Project Settings → **API**):
-   - `Project URL` → chính là `SUPABASE_URL`
-   - `service_role` key (⚠️ giữ bí mật, chỉ dùng server-side) → chính là `SUPABASE_SERVICE_ROLE_KEY`
+3. **Lấy thông tin kết nối** (dashboard mới 2026):
+   - Cách nhanh: bấm nút **Connect** (góc phải trên trang project) → chọn ngôn ngữ → thấy `URL` + key ngay trong hộp thoại.
+   - Hoặc vào **Project Settings → API Keys**:
+     - `Project URL` (dạng `https://xxxx.supabase.co`) → chính là `SUPABASE_URL`
+     - **Secret key** (`sb_secret_...`, ⚠️ giữ bí mật, chỉ dùng server-side) → chính là `SUPABASE_SECRET_KEY`
+     - (Nếu project cũ chỉ có `service_role` key dạng `eyJ...` thì dùng nó cho `SUPABASE_SERVICE_ROLE_KEY` — code hỗ trợ cả hai)
 
 4. **Đặt biến môi trường trên Vercel** (Project → Settings → Environment Variables):
    - `SUPABASE_URL` = Project URL
-   - `SUPABASE_SERVICE_ROLE_KEY` = service_role key
+   - `SUPABASE_SECRET_KEY` = secret key (hoặc `SUPABASE_SERVICE_ROLE_KEY` = service_role key nếu project cũ)
    - `ADMIN_PASSWORD` = mật khẩu quản trị bạn muốn (VD: `bwf2026`)
-   - Redeploy để áp dụng.
+   - Tick cả 3 môi trường (Production, Preview, Development) → Save → **Redeploy** để áp dụng.
 
 5. **Mở trang** — dữ liệu ban đầu lấy từ `data.json`. Khi admin chỉnh sửa lần đầu, dữ liệu được lưu vào Supabase và từ đó mọi người đọc từ database.
 

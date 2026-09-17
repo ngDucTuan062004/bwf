@@ -7,10 +7,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const TABLE = 'app_data';
 const ROW_ID = 1;
 
-// SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY — chỉ dùng server-side (Vercel env vars)
+// SUPABASE_URL + key server-side — chỉ dùng trong Vercel env vars (không lộ ra frontend)
+// Key mới (2026): SUPABASE_SECRET_KEY (sb_secret_...) — fallback key cũ: SUPABASE_SERVICE_ROLE_KEY
 const supabase = createClient(
   process.env.SUPABASE_URL || 'http://localhost:54321',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || 'dummy-key'
+  process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || 'dummy-key'
 );
 
 function loadSeed() {
