@@ -58,6 +58,17 @@ Mở `http://localhost:3000`. Khi chưa cấu hình Supabase, API trả dữ li�
 
 5. **Mở trang** — dữ liệu ban đầu lấy từ `data.json`. Khi admin chỉnh sửa lần đầu, dữ liệu được lưu vào Supabase và từ đó mọi người đọc từ database.
 
+## Test dữ liệu an toàn (bảng test)
+
+Muốn thử chỉnh sửa mà không ảnh hưởng dữ liệu thật:
+
+1. Chạy `supabase-setup.sql` (đã kèm bảng `app_data_test`).
+2. Trên Vercel, thêm env var `SUPABASE_TABLE = app_data_test` → Redeploy.
+3. Test thoải mái — mọi thay đổi chỉ nằm trong bảng test.
+4. Test xong → **xoá** env var `SUPABASE_TABLE` → Redeploy → trang về dữ liệu thật.
+
+> Ngoài ra, `data.json` là "nút reset" vĩnh viễn: xoá dòng `id=1` trong bảng đang dùng (Table Editor) → trang tự về dữ liệu seed từ `data.json`.
+
 ## Cách sử dụng
 
 1. Bấm **✏️ Chỉnh sửa** → nhập mật khẩu quản trị.

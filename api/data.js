@@ -4,7 +4,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const TABLE = 'app_data';
+// Bảng lưu dữ liệu — mặc định app_data; đặt SUPABASE_TABLE=app_data_test để test an toàn
+const TABLE = process.env.SUPABASE_TABLE || 'app_data';
 const ROW_ID = 1;
 
 // SUPABASE_URL + key server-side — chỉ dùng trong Vercel env vars (không lộ ra frontend)
