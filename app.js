@@ -266,27 +266,11 @@ function countSets(sets) {
 }
 
 function computeStandings(participants, matches) {
-	const table = {};
-	participants.forEach(function (name) {
-		table[name] = { name: name, played: 0, wins: 0, losses: 0, setsFor: 0, setsAgainst: 0, ptsFor: 0, ptsAgainst: 0 };
-	});
-	matches.forEach(function (m) {
-		if (!m.sets || !m.sets.length) return;
-		if (!(m.p1 in table) || !(m.p2 in table)) return;
-		const r = countSets(m.sets);
-		const r1 = table[m.p1], r2 = table[m.p2];
-		r1.played++; r2.played++;
-		r1.setsFor += r.s1; r1.setsAgainst += r.s2;
-		r2.setsFor += r.s2; r2.setsAgainst += r.s1;
-		r1.ptsFor += r.pf1; r1.ptsAgainst += r.pf2;
-		r2.ptsFor += r.pf2; r2.ptsAgainst += r.pf1;
-		if (r.s1 > r.s2) { r1.wins++; r2.losses++; } else if (r.s2 > r.s1) { r2.wins++; r1.losses++; }
-	});
-	return Object.keys(table).map(function (k) { return table[k]; }).sort(function (a, b) {
-		return (b.wins - a.wins) ||
-			((b.setsFor - b.setsAgainst) - (a.setsFor - a.setsAgainst)) ||
-			((b.ptsFor - b.ptsAgainst) - (a.ptsFor - a.ptsAgainst));
-	});
+	return SwissCore.computeStandings(participants, matches);
+}
+
+function isSwissStage(stage) {
+	return /^Vòng (Swiss )?\d+$/.test(stage || "");
 }
 
 function allParticipants(content) {
@@ -558,7 +542,7 @@ function renderStandingsSection(content) {
 			]));
 		}
 	} else {
-		const swissMatches = content.matches.filter(function (m) { return (m.stage || "").indexOf("Swiss") !== -1; });
+		const swissMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
 		const rows = computeStandings(content.participants || [], swissMatches);
 		const card = el("div", { class: "group-card" });
 		card.appendChild(el("h3", { text: "Xếp hạng vòng Swiss" }));
@@ -655,58 +639,26 @@ function renderSwissBracket(content) {
 
 function generateNextSwissRound(content) {
 	const participants = (content.participants || []).slice();
-	if (participants.length < 2) { alert("Cần ít nhất 2 VĐV/cặp đấu để sinh vòng Swiss."); return; }
+	if (participants.length < 2) { alert("Cần ít nhất 2 cặp đấu để sinh vòng Swiss."); return; }
 
 	const existingRounds = [];
 	content.matches.forEach(function (m) {
-		if (/^Vòng Swiss \d+$/.test(m.stage) && existingRounds.indexOf(m.stage) === -1) existingRounds.push(m.stage);
+		if (isSwissStage(m.stage) && existingRounds.indexOf(m.stage) === -1) existingRounds.push(m.stage);
 	});
 	const roundNum = existingRounds.length + 1;
-	const stage = "Vòng Swiss " + roundNum;
+	if (roundNum > 5) { alert("Đã đủ 5 vòng Swiss."); return; }
+	const stage = "Vòng " + roundNum;
 
-	const played = new Set();
-	content.matches.forEach(function (m) {
-		if (m.p1 && m.p2) played.add([m.p1, m.p2].sort().join("|"));
-	});
-
-	const standings = computeStandings(participants, content.matches);
-	const pool = standings.map(function (r) { return r.name; });
-	const used = new Set();
-	const pairs = [];
-
-	for (let i = 0; i < pool.length; i++) {
-		const a = pool[i];
-		if (used.has(a)) continue;
-		let placed = false;
-		for (let j = i + 1; j < pool.length; j++) {
-			const b = pool[j];
-			if (used.has(b)) continue;
-			if (!played.has([a, b].sort().join("|"))) {
-				pairs.push([a, b]); used.add(a); used.add(b); placed = true; break;
-			}
-		}
-		if (!placed) {
-			for (let j = i + 1; j < pool.length; j++) {
-				const b = pool[j];
-				if (used.has(b)) continue;
-				pairs.push([a, b]); used.add(a); used.add(b); placed = true; break;
-			}
-		}
-	}
-
-	const bye = pool.filter(function (p) { return !used.has(p); });
-	pairs.forEach(function (pair) {
+	const swissMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
+	const res = SwissCore.pairRound(participants, swissMatches, roundNum);
+	if (!res.pairs.length) { alert("Không thể sinh thêm cặp đấu mới."); return; }
+	res.pairs.forEach(function (pair) {
 		content.matches.push({ stage: stage, p1: pair[0], p2: pair[1], date: "", time: "", court: "", referee: "", sets: null });
 	});
-
-	if (!pairs.length) {
-		alert("Không thể sinh thêm cặp đấu mới (có thể mọi VĐV đã gặp nhau).");
-		return;
-	}
 	saveData();
 	renderAll();
-	let msg = "Đã sinh " + stage + " với " + pairs.length + " trận:\n" + pairs.map(function (p) { return p[0] + " vs " + p[1]; }).join("\n");
-	if (bye.length) msg += "\n\nMiễn thi đấu (bye): " + bye.join(", ");
+	let msg = "Đã sinh " + stage + " với " + res.pairs.length + " trận:\n" + res.pairs.map(function (p) { return p[0] + " vs " + p[1]; }).join("\n");
+	if (res.bye.length) msg += "\n\nMiễn thi đấu (bye): " + res.bye.join(", ");
 	alert(msg);
 }
 
