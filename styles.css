@@ -1006,3 +1006,156 @@ details.howto code {
 	background: #FBEFDC;
 	border-radius: 7px;
 }
+
+/* ================================================================
+   SWISS NÂNG CẤP — thành tích, nhánh Thắng/Thua, modal lịch sử
+   ================================================================ */
+.swiss-side {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 6px;
+}
+.swiss-side-name {
+	flex: 1;
+	min-width: 0;
+}
+.swiss-record {
+	flex: 0 0 auto;
+	font-family: var(--font-display);
+	font-size: 11px;
+	font-weight: 700;
+	color: var(--court);
+	background: var(--bg);
+	border: 1px solid var(--line);
+	border-radius: 10px;
+	padding: 1px 7px;
+}
+.swiss-side.winner .swiss-record {
+	background: #E7F6E9;
+	border-color: #B7E4C0;
+	color: var(--win);
+}
+
+.swiss-branches {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-top: 14px;
+}
+.swiss-branch {
+	flex: 1 1 220px;
+	min-width: 200px;
+	border: 1px solid var(--line);
+	border-radius: 10px;
+	padding: 12px 14px;
+	background: #fff;
+}
+.swiss-branch.thang { background: #F0FAF1; border-color: #B7E4C0; }
+.swiss-branch.canbang { background: #F7F8FA; border-color: var(--line-strong); }
+.swiss-branch.thua { background: #FDF3EE; border-color: #F2C4A8; }
+.swiss-branch-title {
+	margin: 0 0 2px;
+	font-family: var(--font-display);
+	font-size: 13px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+.swiss-branch.thang .swiss-branch-title { color: var(--win); }
+.swiss-branch.thua .swiss-branch-title { color: #C05621; }
+.swiss-branch-note {
+	margin: 0 0 8px;
+	font-size: 12px;
+	color: var(--ink-soft);
+}
+.swiss-branch-team {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 5px 0;
+	border-top: 1px dashed var(--line);
+	font-size: 13px;
+}
+.swiss-branch-name { font-weight: 600; }
+.swiss-branch-record {
+	font-family: var(--font-display);
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--court);
+	background: var(--bg);
+	border: 1px solid var(--line);
+	border-radius: 10px;
+	padding: 0 7px;
+}
+
+.record-badge {
+	display: inline-block;
+	font-family: var(--font-display);
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--court);
+	background: var(--bg);
+	border: 1px solid var(--line);
+	border-radius: 10px;
+	padding: 1px 8px;
+}
+.link-name {
+	background: none;
+	border: none;
+	padding: 0;
+	margin: 0;
+	font: inherit;
+	color: var(--court);
+	font-weight: 600;
+	cursor: pointer;
+	text-decoration: underline;
+	text-decoration-style: dotted;
+	text-underline-offset: 3px;
+}
+.link-name:hover { color: var(--win); }
+
+.modal-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(15, 23, 42, 0.55);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+	padding: 16px;
+}
+.modal {
+	background: #fff;
+	border-radius: 12px;
+	max-width: 520px;
+	width: 100%;
+	max-height: 80vh;
+	overflow-y: auto;
+	padding: 18px 20px;
+	box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+.modal h3 { margin: 0 0 12px; font-family: var(--font-display); color: var(--court-dark); }
+.team-history-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.team-history-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 13px;
+	padding: 7px 9px;
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	background: var(--bg);
+}
+.th-stage { flex: 0 0 64px; font-weight: 700; color: var(--court); }
+.th-opp { flex: 1; min-width: 0; }
+.th-score { font-family: var(--font-display); font-size: 12.5px; font-weight: 600; color: var(--ink-soft); }
+.th-result { flex: 0 0 60px; text-align: center; font-weight: 700; font-size: 12px; border-radius: 10px; padding: 2px 6px; }
+.th-result.win { color: var(--win); background: #E7F6E9; }
+.th-result.loss { color: #C05621; background: #FDF3EE; }
+.th-result.pending { color: var(--pending); background: #FBEFDC; }
+
+.quick-win-row { flex-wrap: wrap; gap: 8px; align-items: center; }
+.quick-win-label { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); }
+.quick-pick-badge { font-weight: 600; }
