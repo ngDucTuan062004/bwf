@@ -470,7 +470,7 @@ function renderStandingsGroupCard(content, group, title) {
 	}
 }
 
-function buildStandingsTable(rows, onDeletePlayer, deleteTitle, deleteSymbol, onClickName) {
+function buildStandingsTable(rows, onDeletePlayer, deleteTitle, deleteSymbol, onClickName, showNumber) {
 	deleteTitle = deleteTitle || "Xoá";
 	deleteSymbol = deleteSymbol || " ×";
 	const thead = el("thead", {}, el("tr", {}, [
@@ -484,11 +484,12 @@ function buildStandingsTable(rows, onDeletePlayer, deleteTitle, deleteSymbol, on
 	]));
 	const tbody = el("tbody");
 	rows.forEach(function (r, i) {
+		const label = (showNumber ? (i + 1) + ". " : "") + r.name;
 		const nameCell = el("td", {});
 		if (onClickName) {
-			nameCell.appendChild(el("button", { class: "link-name", type: "button", title: "Xem lịch sử thi đấu", onclick: function () { onClickName(r.name); } }, r.name));
+			nameCell.appendChild(el("button", { class: "link-name", type: "button", title: "Xem lịch sử thi đấu", onclick: function () { onClickName(r.name); } }, label));
 		} else {
-			nameCell.textContent = r.name;
+			nameCell.textContent = label;
 		}
 		if (onDeletePlayer) {
 			nameCell.appendChild(el("button", {
@@ -799,13 +800,17 @@ function renderSwissBracket(content) {
 				const scoreText = hasScore
 					? m.sets.map(function (p) { return p[0] + "–" + p[1]; }).join(", ") + " · " + cs.s1 + "–" + cs.s2
 					: (m.winner ? "chọn nhanh" : "chưa đấu");
+				const idx1 = (content.participants || []).indexOf(m.p1);
+				const idx2 = (content.participants || []).indexOf(m.p2);
+				const name1 = (idx1 >= 0 ? (idx1 + 1) + ". " : "") + m.p1;
+				const name2 = (idx2 >= 0 ? (idx2 + 1) + ". " : "") + m.p2;
 				col.appendChild(el("div", { class: "swiss-match" }, [
 					el("div", { class: "swiss-side" + (winner === m.p1 ? " winner" : "") }, [
-						el("span", { class: "swiss-side-name", text: m.p1 }),
+						el("span", { class: "swiss-side-name", text: name1 }),
 						el("span", { class: "swiss-record", text: rec1.w + "-" + rec1.l }),
 					]),
 					el("div", { class: "swiss-side" + (winner === m.p2 ? " winner" : "") }, [
-						el("span", { class: "swiss-side-name", text: m.p2 }),
+						el("span", { class: "swiss-side-name", text: name2 }),
 						el("span", { class: "swiss-record", text: rec2.w + "-" + rec2.l }),
 					]),
 					el("div", { class: "swiss-score", text: scoreText }),
