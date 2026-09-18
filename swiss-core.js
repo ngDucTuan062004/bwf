@@ -141,5 +141,53 @@
 		return { pairs: res.pairs, bye: res.bye };
 	}
 
-	return { countSets: countSets, matchWinner: matchWinner, recordOf: recordOf, computeStandings: computeStandings, groupByRecord: groupByRecord, pairRound: pairRound, pairKey: pairKey };
+	/* Cấu trúc bracket cho từng vòng Swiss (thuần, không DOM):
+	   [
+	     { round: N, groups: [{ record: "w-l", matches: [m,...] }], bye: [name,...] }
+	   ]
+	   - groups sắp theo thứ hạng giảm dần (record theo wins)
+	   - matches trong group sắp theo thứ hạng của cặp đứng cao hơn
+	   - bye: cặp không có trận vòng N nhưng có trận vòng N+1 */
+	function buildSwissBracket(participants, matches, totalRounds) {
+		const byStage = {};
+		matches.forEach(function (m) {
+			if (!byStage[m.stage]) byStage[m.stage] = [];
+			byStage[m.stage].push(m);
+		});
+		const result = [];
+		let playedSoFar = [];
+		for (let r = 1; r <= totalRounds; r++) {
+			const roundMatches = (byStage["Vòng " + r] || byStage["Vòng Swiss " + r] || []).slice();
+			const standings = computeStandings(participants, playedSoFar);
+			const rankOf = {}, recOf = {};
+			standings.forEach(function (row, i) { rankOf[row.name] = i; recOf[row.name] = row.wins + "-" + row.losses; });
+			const topRank = function (m) {
+				const a = rankOf[m.p1] != null ? rankOf[m.p1] : 999;
+				const b = rankOf[m.p2] != null ? rankOf[m.p2] : 999;
+				return Math.min(a, b);
+			};
+			roundMatches.sort(function (a, b) { return topRank(a) - topRank(b); });
+			const groups = [];
+			roundMatches.forEach(function (m) {
+				const top = (rankOf[m.p1] != null ? rankOf[m.p1] : 999) <= (rankOf[m.p2] != null ? rankOf[m.p2] : 999) ? m.p1 : m.p2;
+				const record = recOf[top] || "0-0";
+				const last = groups[groups.length - 1];
+				if (last && last.record === record) last.matches.push(m);
+				else groups.push({ record: record, matches: [m] });
+			});
+			const nextMatches = (byStage["Vòng " + (r + 1)] || byStage["Vòng Swiss " + (r + 1)] || []);
+			const inRound = new Set();
+			roundMatches.forEach(function (m) { inRound.add(m.p1); inRound.add(m.p2); });
+			const bye = [];
+			nextMatches.forEach(function (m) {
+				if (!inRound.has(m.p1) && participants.indexOf(m.p1) !== -1) bye.push(m.p1);
+				if (!inRound.has(m.p2) && participants.indexOf(m.p2) !== -1) bye.push(m.p2);
+			});
+			result.push({ round: r, groups: groups, bye: bye });
+			playedSoFar = playedSoFar.concat(roundMatches);
+		}
+		return result;
+	}
+
+	return { countSets: countSets, matchWinner: matchWinner, recordOf: recordOf, computeStandings: computeStandings, groupByRecord: groupByRecord, pairRound: pairRound, pairKey: pairKey, buildSwissBracket: buildSwissBracket };
 });
