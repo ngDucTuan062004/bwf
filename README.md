@@ -7,7 +7,9 @@ Trang web động theo dõi lịch thi đấu, bảng xếp hạng và kết qu�
 - **6 nội dung thi đấu**: Đơn nam, Đơn nữ (Nhóm 1 & 2), Đôi nam, Đôi nam nữ (Nhóm 1 & 2)
 - **Bảng xếp hạng tự động**: tính từ kết quả (Thắng → Hiệu số séc → Hiệu số điểm)
 - **Chế độ chỉnh sửa** (cần mật khẩu quản trị): thêm/xoá VĐV, thêm/xoá trận, nhập tỉ số
+- **🎲 Bốc thăm chia bảng**: danh sách VĐV chờ bốc thăm → kéo-tên vào Bảng A/B
 - **⚡ Tự sinh lịch vòng bảng**: mỗi cặp gặp nhau 1 lần (round-robin)
+- **🏆 Sơ đồ Swiss 5 vòng**: khung thi đấu vẽ sẵn cho nội dung đôi, bấm ⚡ tự sinh cặp đấu từng vòng
 - **Quản lý nội dung**: thêm/sửa/xoá nội dung, bảng, VĐV bằng form
 - **Lưu dữ liệu trên server** (Supabase Postgres — gói free) — mọi người cùng thấy thay đổi ngay
 
@@ -18,6 +20,7 @@ Trang web động theo dõi lịch thi đấu, bảng xếp hạng và kết qu�
 ├── styles.css        # Toàn bộ CSS
 ├── app.js            # Toàn bộ logic frontend
 ├── data.json         # Dữ liệu mặc định (seed khi database chưa có dữ liệu)
+├── server.js         # Local dev server (Node thuần — chỉ dùng khi chạy local)
 ├── api/
 │   ├── data.js       # GET: đọc dữ liệu · PUT: lưu dữ liệu (cần mật khẩu)
 │   └── auth.js       # POST: xác thực mật khẩu quản trị
@@ -26,14 +29,16 @@ Trang web động theo dõi lịch thi đấu, bảng xếp hạng và kết qu�
 └── package.json      # Dependency @supabase/supabase-js
 ```
 
-## Chạy local
+## Chạy local (không cần Vercel)
 
 ```bash
 npm install
-vercel dev
+npm run dev
 ```
 
-Mở `http://localhost:3000`. Khi chưa cấu hình Supabase, API trả dữ liệu từ `data.json` (chế độ đọc — chưa lưu được).
+Mở `http://localhost:3000`. Server local tự serve tĩnh + API giả lập:
+- Mật khẩu admin mặc định: `admin` (đổi bằng env `ADMIN_PASSWORD`)
+- Dữ liệu chỉnh sửa được ghi vào `data-store.json` (đã ignore git) — không ảnh hưởng dữ liệu thật
 
 ## Deploy lên Vercel
 

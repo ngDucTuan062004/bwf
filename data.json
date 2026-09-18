@@ -1,88 +1,114 @@
 {
-  "event": {
-    "dateRange": "30/9 – 04/10/2026",
-    "location": "Sân cầu lông Đồng Đội"
-  },
-  "contents": [
-    {
-      "id": "don-nam",
-      "label": "Đơn nam",
-      "format": "group",
-      "scoringNote": "Thắng 2/3 séc — séc 1 & 2 đến 21 điểm, séc 3 (nếu có) đến 15 điểm. Chia 2 bảng vòng tròn, Nhất/Nhì mỗi bảng vào bán kết.",
-      "groups": [
-        { "name": "Bảng A", "players": ["Phan Văn Thịnh", "Lâm Vĩ Phát", "Trịnh Hoàng Trí", "Nguyễn Hoàng Hải Đăng"] },
-        { "name": "Bảng B", "players": ["Trần Hoàng Trung", "Nguyễn Cao Kế", "Nguyễn Minh Trường", "Đỗ Thành Chung"] }
-      ],
-      "matches": []
-    },
-    {
-      "id": "don-nu-1",
-      "label": "Đơn nữ · Nhóm 1",
-      "format": "group",
-      "scoringNote": "Thắng 2/3 séc — mỗi séc đến 15 điểm. Chia 2 bảng vòng tròn, Nhất/Nhì mỗi bảng vào bán kết.",
-      "groups": [
-        { "name": "Bảng A", "players": ["Bùi Tuệ San", "Huỳnh Thị Thoại My", "Trần Minh Thư"] },
-        { "name": "Bảng B", "players": ["Lý Thanh Trúc", "Nguyễn Thụy Thảo Vy", "Trần Thu Trang"] }
-      ],
-      "matches": []
-    },
-    {
-      "id": "don-nu-2",
-      "label": "Đơn nữ · Nhóm 2",
-      "format": "group",
-      "scoringNote": "Thắng 2/3 séc — mỗi séc đến 15 điểm. Chia 2 bảng vòng tròn, Nhất/Nhì mỗi bảng vào bán kết.",
-      "groups": [
-        { "name": "Bảng A", "players": ["Nguyễn Ngọc Hạnh", "Phan Huỳnh Thanh Ngọc", "Nguyễn Ngọc Yến Nhi"] },
-        { "name": "Bảng B", "players": ["Mai Nguyễn Gia Nhi", "Huỳnh Trần Khánh Băng", "Lê Thị Hồng Phượng"] }
-      ],
-      "matches": []
-    },
-    {
-      "id": "doi-nam",
-      "label": "Đôi nam",
-      "format": "swiss",
-      "scoringNote": "Thắng 2/3 séc — séc 1 & 2 đến 21 điểm, séc 3 (nếu có) đến 15 điểm. Thể thức Swiss, sau đó chia nhánh Thắng/Thua.",
-      "participants": [
-        "Trần Thái An - Nguyễn Cao Kế",
-        "Nguyễn Minh Trường - Nguyễn Đức Tuấn",
-        "Đỗ Thành Chung - Nguyễn Đình Triết",
-        "Nguyễn Trí Việt - Nguyễn Xuân Hoàng Khôi",
-        "Đỗ Anh Quân - Phan Văn Thịnh",
-        "Trịnh Hoàng Trí - Nguyễn Hoàng Hải Đăng"
-      ],
-      "matches": []
-    },
-    {
-      "id": "doi-nam-nu-1",
-      "label": "Đôi nam nữ · Nhóm 1",
-      "format": "swiss",
-      "scoringNote": "Thắng 2/3 séc — séc 1 & 2 đến 21 điểm, séc 3 (nếu có) đến 15 điểm. Thể thức Swiss, sau đó chia nhánh Thắng/Thua.",
-      "participants": [
-        "Nguyễn Đình Triết - Nguyễn Thụy Thảo Vy",
-        "Trần Văn Cường - Huỳnh Thị Thoại My",
-        "Chề Hỷ Minh - Phan Kim Thoại",
-        "Phan Văn Thịnh - Lý Thanh Trúc",
-        "Sau Thành Thái - Trần Thu Trang",
-        "Lương Công Triều - Trần Minh Thư",
-        "Võ Minh Tuấn - Bùi Tuệ San",
-        "Tuyên Bon - Huỳnh Trần Khánh Băng"
-      ],
-      "matches": []
-    },
-    {
-      "id": "doi-nam-nu-2",
-      "label": "Đôi nam nữ · Nhóm 2",
-      "format": "swiss",
-      "scoringNote": "Thắng 2/3 séc — séc 1 & 2 đến 21 điểm, séc 3 (nếu có) đến 15 điểm. Thể thức Swiss, sau đó chia nhánh Thắng/Thua.",
-      "participants": [
-        "Nguyễn Đức Tuấn - Mai Nguyễn Gia Nhi",
-        "Nguyễn Trí Việt - Lê Thị Hồng Phượng",
-        "Trần Thái An - Nguyễn Ngọc Yến Nhi",
-        "Trịnh Hoàng Trí - Tô Ngọc Khánh An",
-        "Đỗ Anh Quân - Nguyễn Ngọc Hạnh",
-        "Lâm Vĩ Phát - Phan Huỳnh Thanh Ngọc"
-      ],
-      "matches": []
-    }
-  ]
+	"event": {
+		"dateRange": "30/9 – 04/10/2026",
+		"location": "Sân cầu lông Đồng Đội"
+	},
+	"contents": [
+		{
+			"id": "don-nam",
+			"label": "Đơn nam",
+			"format": "group",
+			"scoringNote": "Thắng 2/3 séc — séc 1 & 2 đến 21 điểm, séc 3 (nếu có) đến 15 điểm. Chia 2 bảng vòng tròn, Nhất/Nhì mỗi bảng vào bán kết.",
+			"unassignedPlayers": [
+				"Phan Văn Thịnh",
+				"Lâm Vĩ Phát",
+				"Trịnh Hoàng Trí",
+				"Nguyễn Hoàng Hải Đăng",
+				"Nguyễn Văn Phong",
+				"Nguyễn Cao Kế",
+				"Nguyễn Minh Trường",
+				"Đỗ Thành Chung"
+			],
+			"groups": [
+				{ "name": "Bảng A", "players": [] },
+				{ "name": "Bảng B", "players": [] }
+			],
+			"matches": []
+		},
+		{
+			"id": "don-nu-1",
+			"label": "Đơn nữ · Nhóm 1",
+			"format": "group",
+			"scoringNote": "Thắng 2/3 séc — mỗi séc đến 15 điểm. Chia 2 bảng vòng tròn, Nhất/Nhì mỗi bảng vào bán kết.",
+			"unassignedPlayers": [
+				"Bùi Tuệ San",
+				"Huỳnh Thị Thoại My",
+				"Trần Minh Thư",
+				"Lý Thanh Trúc",
+				"Nguyễn Thụy Thảo Vy",
+				"Trần Thu Trang"
+			],
+			"groups": [
+				{ "name": "Bảng A", "players": [] },
+				{ "name": "Bảng B", "players": [] }
+			],
+			"matches": []
+		},
+		{
+			"id": "don-nu-2",
+			"label": "Đơn nữ · Nhóm 2",
+			"format": "group",
+			"scoringNote": "Thắng 2/3 séc — mỗi séc đến 15 điểm. Chia 2 bảng vòng tròn, Nhất/Nhì mỗi bảng vào bán kết.",
+			"unassignedPlayers": [
+				"Nguyễn Ngọc Hạnh",
+				"Phan Huỳnh Thanh Ngọc",
+				"Nguyễn Ngọc Yến Nhi",
+				"Mai Nguyễn Gia Nhi",
+				"Huỳnh Trần Khánh Băng",
+				"Lê Thị Hồng Phượng"
+			],
+			"groups": [
+				{ "name": "Bảng A", "players": [] },
+				{ "name": "Bảng B", "players": [] }
+			],
+			"matches": []
+		},
+		{
+			"id": "doi-nam",
+			"label": "Đôi nam",
+			"format": "swiss",
+			"scoringNote": "Thắng 2/3 séc — séc 1 & 2 đến 21 điểm, séc 3 (nếu có) đến 15 điểm. Thể thức Swiss, sau đó chia nhánh Thắng/Thua.",
+			"participants": [
+				"Trần Thái An - Nguyễn Cao Kế",
+				"Nguyễn Minh Trường - Nguyễn Đức Tuấn",
+				"Đỗ Thành Chung - Nguyễn Đình Triết",
+				"Nguyễn Trí Việt - Nguyễn Xuân Hoàng Khôi",
+				"Đỗ Anh Quân - Phan Văn Thịnh",
+				"Trịnh Hoàng Trí - Nguyễn Hoàng Hải Đăng"
+			],
+			"matches": []
+		},
+		{
+			"id": "doi-nam-nu-1",
+			"label": "Đôi nam nữ · Nhóm 1",
+			"format": "swiss",
+			"scoringNote": "Thắng 2/3 séc — séc 1 & 2 đến 21 điểm, séc 3 (nếu có) đến 15 điểm. Thể thức Swiss, sau đó chia nhánh Thắng/Thua.",
+			"participants": [
+				"Nguyễn Đình Triết - Nguyễn Thụy Thảo Vy",
+				"Trần Văn Cường - Huỳnh Thị Thoại My",
+				"Chề Hỷ Minh - Phan Kim Thoại",
+				"Phan Văn Thịnh - Lý Thanh Trúc",
+				"Sau Thành Thái - Trần Thu Trang",
+				"Lương Công Triều - Trần Minh Thư",
+				"Võ Minh Tuấn - Bùi Tuệ San",
+				"Tuyên Bon - Huỳnh Trần Khánh Băng"
+			],
+			"matches": []
+		},
+		{
+			"id": "doi-nam-nu-2",
+			"label": "Đôi nam nữ · Nhóm 2",
+			"format": "swiss",
+			"scoringNote": "Thắng 2/3 séc — séc 1 & 2 đến 21 điểm, séc 3 (nếu có) đến 15 điểm. Thể thức Swiss, sau đó chia nhánh Thắng/Thua.",
+			"participants": [
+				"Nguyễn Đức Tuấn - Mai Nguyễn Gia Nhi",
+				"Nguyễn Trí Việt - Lê Thị Hồng Phượng",
+				"Trần Thái An - Nguyễn Ngọc Yến Nhi",
+				"Trịnh Hoàng Trí - Tô Ngọc Khánh An",
+				"Đỗ Anh Quân - Nguyễn Ngọc Hạnh",
+				"Lâm Vĩ Phát - Phan Huỳnh Thanh Ngọc"
+			],
+			"matches": []
+		}
+	]
 }
