@@ -773,57 +773,65 @@ function renderSwissBracket(content) {
 	const section = el("div", { class: "swiss-bracket-card" });
 	section.appendChild(el("h3", { class: "swiss-bracket-title", text: "Sơ đồ thi đấu — vòng Swiss" }));
 
+	const participants = content.participants || [];
 	const swissMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
-	const byStage = {};
-	swissMatches.forEach(function (m) {
-		if (!byStage[m.stage]) byStage[m.stage] = [];
-		byStage[m.stage].push(m);
-	});
-
-	const n = (content.participants || []).length;
-	const slotsPerRound = Math.max(1, Math.ceil(n / 2));
 	const totalRounds = 5;
+	const bracket = SwissCore.buildSwissBracket(participants, swissMatches, totalRounds);
 
-	const track = el("div", { class: "swiss-bracket-track" });
-	for (let r = 1; r <= totalRounds; r++) {
+	const track = el("div", { class: "swiss-bracket-track", "data-bracket-track": "1" });
+	bracket.forEach(function (roundData) {
 		const col = el("div", { class: "swiss-round" });
-		col.appendChild(el("h4", { class: "swiss-round-head", text: "Vòng " + r }));
-		const roundMatches = byStage["Vòng " + r] || byStage["Vòng Swiss " + r] || [];
-		for (let i = 0; i < slotsPerRound; i++) {
-			const m = roundMatches[i];
-			if (m) {
-				const winner = SwissCore.matchWinner(m);
-				const hasScore = !!(m.sets && m.sets.length);
-				const rec1 = SwissCore.recordOf(swissMatches, m.p1);
-				const rec2 = SwissCore.recordOf(swissMatches, m.p2);
-				const cs = hasScore ? SwissCore.countSets(m.sets) : null;
-				const scoreText = hasScore
-					? m.sets.map(function (p) { return p[0] + "–" + p[1]; }).join(", ") + " · " + cs.s1 + "–" + cs.s2
-					: (m.winner ? "chọn nhanh" : "chưa đấu");
-				const idx1 = (content.participants || []).indexOf(m.p1);
-				const idx2 = (content.participants || []).indexOf(m.p2);
-				const name1 = (idx1 >= 0 ? (idx1 + 1) + ". " : "") + m.p1;
-				const name2 = (idx2 >= 0 ? (idx2 + 1) + ". " : "") + m.p2;
-				col.appendChild(el("div", { class: "swiss-match" }, [
-					el("div", { class: "swiss-side" + (winner === m.p1 ? " winner" : "") }, [
-						el("span", { class: "swiss-side-name", text: name1 }),
-						el("span", { class: "swiss-record", text: rec1.w + "-" + rec1.l }),
-					]),
-					el("div", { class: "swiss-side" + (winner === m.p2 ? " winner" : "") }, [
-						el("span", { class: "swiss-side-name", text: name2 }),
-						el("span", { class: "swiss-record", text: rec2.w + "-" + rec2.l }),
-					]),
-					el("div", { class: "swiss-score", text: scoreText }),
-				]));
-			} else {
-				col.appendChild(el("div", { class: "swiss-empty-slot", text: "Chưa ghép cặp" }));
-			}
+		col.appendChild(el("h4", { class: "swiss-round-head", text: "Vòng " + roundData.round }));
+		roundData.groups.forEach(function (group) {
+			col.appendChild(el("div", { class: "swiss-group-label", text: "Nhánh " + group.record }));
+			group.matches.forEach(function (m) { col.appendChild(buildBracketMatchNode(content, m, swissMatches)); });
+		});
+		roundData.bye.forEach(function (name) {
+			const idx = participants.indexOf(name);
+			col.appendChild(el("div", { class: "swiss-bye-node", "data-team": name }, [
+				el("span", { class: "swiss-side-name", text: (idx >= 0 ? (idx + 1) + ". " : "") + name }),
+				el("span", { class: "swiss-bye-tag", text: "Miễn thi đấu (bye)" }),
+			]));
+		});
+		const played = roundData.groups.reduce(function (n, g) { return n + g.matches.length; }, 0) + roundData.bye.length;
+		const slots = Math.max(1, Math.ceil(participants.length / 2));
+		for (let i = played; i < slots; i++) {
+			col.appendChild(el("div", { class: "swiss-empty-slot", text: "Chưa ghép cặp" }));
 		}
 		track.appendChild(col);
-	}
+	});
 	section.appendChild(track);
+	drawSwissConnectors(track, participants, bracket);
 	return section;
 }
+
+function buildBracketMatchNode(content, m, swissMatches) {
+	const winner = SwissCore.matchWinner(m);
+	const hasScore = !!(m.sets && m.sets.length);
+	const rec1 = SwissCore.recordOf(swissMatches, m.p1);
+	const rec2 = SwissCore.recordOf(swissMatches, m.p2);
+	const cs = hasScore ? SwissCore.countSets(m.sets) : null;
+	const scoreText = hasScore
+		? m.sets.map(function (p) { return p[0] + "–" + p[1]; }).join(", ") + " · " + cs.s1 + "–" + cs.s2
+		: (m.winner ? "chọn nhanh" : "chưa đấu");
+	const idx1 = (content.participants || []).indexOf(m.p1);
+	const idx2 = (content.participants || []).indexOf(m.p2);
+	const name1 = (idx1 >= 0 ? (idx1 + 1) + ". " : "") + m.p1;
+	const name2 = (idx2 >= 0 ? (idx2 + 1) + ". " : "") + m.p2;
+	const node = el("div", { class: "swiss-match", "data-team": m.p1, "data-round": m.stage });
+	node.appendChild(el("div", { class: "swiss-side" + (winner === m.p1 ? " winner" : ""), "data-team-side": m.p1 }, [
+		el("button", { class: "swiss-side-name link-name", type: "button", text: name1, onclick: function () { showTeamHistory(content, m.p1); } }),
+		el("span", { class: "swiss-record", text: rec1.w + "-" + rec1.l }),
+	]));
+	node.appendChild(el("div", { class: "swiss-side" + (winner === m.p2 ? " winner" : ""), "data-team-side": m.p2 }, [
+		el("button", { class: "swiss-side-name link-name", type: "button", text: name2, onclick: function () { showTeamHistory(content, m.p2); } }),
+		el("span", { class: "swiss-record", text: rec2.w + "-" + rec2.l }),
+	]));
+	node.appendChild(el("div", { class: "swiss-score", text: scoreText }));
+	return node;
+}
+
+function drawSwissConnectors() { /* Task 3 */ }
 
 function generateNextSwissRound(content) {
 	const participants = (content.participants || []).slice();
