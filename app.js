@@ -480,11 +480,12 @@ function renderStandingsGroupCard(content, group, title) {
 	}
 }
 
-function buildStandingsTable(rows, onDeletePlayer, deleteTitle, deleteSymbol) {
+function buildStandingsTable(rows, onDeletePlayer, deleteTitle, deleteSymbol, onClickName) {
 	deleteTitle = deleteTitle || "Xoá";
 	deleteSymbol = deleteSymbol || " ×";
 	const thead = el("thead", {}, el("tr", {}, [
 		el("th", { text: "VĐV / Cặp đấu" }),
+		el("th", { class: "num", text: "Thành tích" }),
 		el("th", { class: "num", text: "Trận" }),
 		el("th", { class: "num", text: "Thắng" }),
 		el("th", { class: "num", text: "Thua" }),
@@ -493,7 +494,12 @@ function buildStandingsTable(rows, onDeletePlayer, deleteTitle, deleteSymbol) {
 	]));
 	const tbody = el("tbody");
 	rows.forEach(function (r, i) {
-		const nameCell = el("td", {}, r.name);
+		const nameCell = el("td", {});
+		if (onClickName) {
+			nameCell.appendChild(el("button", { class: "link-name", type: "button", title: "Xem lịch sử thi đấu", onclick: function () { onClickName(r.name); } }, r.name));
+		} else {
+			nameCell.textContent = r.name;
+		}
 		if (onDeletePlayer) {
 			nameCell.appendChild(el("button", {
 				class: "del-player", type: "button", title: deleteTitle, onclick: function () {
@@ -503,6 +509,7 @@ function buildStandingsTable(rows, onDeletePlayer, deleteTitle, deleteSymbol) {
 		}
 		const tr = el("tr", { class: i === 0 ? "rank-1" : (i === 1 ? "rank-2" : "") }, [
 			nameCell,
+			el("td", { class: "num" }, el("span", { class: "record-badge", text: r.wins + "-" + r.losses })),
 			el("td", { class: "num", text: String(r.played) }),
 			el("td", { class: "num", text: String(r.wins) }),
 			el("td", { class: "num", text: String(r.losses) }),
@@ -546,6 +553,7 @@ function renderStandingsSection(content) {
 		const rows = computeStandings(content.participants || [], swissMatches);
 		const card = el("div", { class: "group-card" });
 		card.appendChild(el("h3", { text: "Xếp hạng vòng Swiss" }));
+		const openHistory = function (name) { showTeamHistory(content, name); };
 		if (!content.participants || !content.participants.length) {
 			card.appendChild(el("p", { class: "empty", style: "padding:12px 14px;" }, "Chưa có cặp đấu nào."));
 		} else if (rows.every(function (r) { return r.played === 0; })) {
@@ -553,15 +561,16 @@ function renderStandingsSection(content) {
 				if (!confirm("Xoá \"" + name + "\" khỏi danh sách?")) return;
 				content.participants = content.participants.filter(function (p) { return p !== name; });
 				saveData(); renderAll();
-			} : null));
+			} : null, null, null, openHistory));
 			card.appendChild(el("p", { class: "standings-note" }, "Chưa có trận nào ghi nhận kết quả."));
 		} else {
 			card.appendChild(buildStandingsTable(rows, editMode ? function (name) {
 				if (!confirm("Xoá \"" + name + "\" khỏi danh sách?")) return;
 				content.participants = content.participants.filter(function (p) { return p !== name; });
 				saveData(); renderAll();
-			} : null));
-			card.appendChild(el("p", { class: "standings-note" }, "Xếp theo: Thắng → Hiệu số séc → Hiệu số điểm."));
+			} : null, null, null, openHistory));
+			card.appendChild(el("p", { class: "standings-note" }, "Xếp theo: Thắng → Hiệu số séc → Hiệu số điểm. Đội nghỉ vòng (bye) khi không thể ghép cặp tránh tái đấu."));
+			card.appendChild(renderSwissBranches(rows));
 		}
 		if (editMode) {
 			const input = el("input", { type: "text", placeholder: "Tên cặp đấu mới" });
@@ -578,13 +587,70 @@ function renderStandingsSection(content) {
 			]);
 			card.appendChild(addRow);
 			card.appendChild(el("div", { class: "group-actions" }, [
-				el("button", { class: "btn small outline", type: "button", onclick: function () { generateNextSwissRound(content); } }, "⚡ Tự sinh vòng Swiss tiếp theo"),
+				el("button", { class: "btn small outline", type: "button", onclick: function () { generateNextSwissRound(content); } }, "⚡ Tự sinh vòng tiếp theo"),
 			]));
 		}
 		wrap.appendChild(card);
 		outer.appendChild(renderSwissBracket(content));
 	}
 	return outer;
+}
+
+/* ================================================================
+   SWISS — nhánh Thắng/Thua & lịch sử thi đấu
+   ================================================================ */
+function renderSwissBranches(rows) {
+	const wrap = el("div", { class: "swiss-branches" });
+	wrap.appendChild(branchCard("NHÁNH THẮNG", "Đội có số trận thắng nhiều hơn thua", rows.filter(function (r) { return r.wins > r.losses; }), "thang"));
+	wrap.appendChild(branchCard("CÂN BẰNG", "Đội có số trận thắng bằng số trận thua", rows.filter(function (r) { return r.wins === r.losses; }), "canbang"));
+	wrap.appendChild(branchCard("NHÁNH THUA", "Đội có số trận thua nhiều hơn thắng", rows.filter(function (r) { return r.wins < r.losses; }), "thua"));
+	return wrap;
+}
+
+function branchCard(title, note, rows, cls) {
+	const card = el("div", { class: "swiss-branch " + cls });
+	card.appendChild(el("h4", { class: "swiss-branch-title", text: title }));
+	card.appendChild(el("p", { class: "swiss-branch-note", text: note }));
+	if (!rows.length) {
+		card.appendChild(el("p", { class: "empty", style: "padding:8px 2px;" }, "Chưa có đội nào."));
+	} else {
+		rows.forEach(function (r) {
+			card.appendChild(el("div", { class: "swiss-branch-team" }, [
+				el("span", { class: "swiss-branch-name", text: r.name }),
+				el("span", { class: "swiss-branch-record", text: r.wins + "-" + r.losses }),
+			]));
+		});
+	}
+	return card;
+}
+
+function showTeamHistory(content, name) {
+	const overlay = el("div", { class: "modal-overlay" });
+	const modal = el("div", { class: "modal" });
+	modal.appendChild(el("h3", { text: "Lịch sử thi đấu — " + name }));
+	const list = el("div", { class: "team-history-list" });
+	const myMatches = content.matches.filter(function (m) { return m.p1 === name || m.p2 === name; });
+	if (!myMatches.length) {
+		list.appendChild(el("p", { class: "empty" }, "Chưa có trận nào."));
+	} else {
+		myMatches.forEach(function (m) {
+			const opp = m.p1 === name ? m.p2 : m.p1;
+			const winner = SwissCore.matchWinner(m);
+			const result = winner === name ? "Thắng" : (winner ? "Thua" : "Chưa đấu");
+			const score = m.sets ? m.sets.map(function (p) { return p[0] + "–" + p[1]; }).join(", ") : (m.winner ? "chọn nhanh" : "—");
+			list.appendChild(el("div", { class: "team-history-row" }, [
+				el("span", { class: "th-stage", text: m.stage }),
+				el("span", { class: "th-opp", text: "vs " + opp }),
+				el("span", { class: "th-score", text: score }),
+				el("span", { class: "th-result " + (winner === name ? "win" : winner ? "loss" : "pending"), text: result }),
+			]));
+		});
+	}
+	modal.appendChild(list);
+	modal.appendChild(el("button", { class: "btn small", type: "button", onclick: function () { document.body.removeChild(overlay); } }, "Đóng"));
+	overlay.appendChild(modal);
+	document.body.appendChild(overlay);
+	overlay.addEventListener("click", function (e) { if (e.target === overlay) document.body.removeChild(overlay); });
 }
 
 /* ================================================================
