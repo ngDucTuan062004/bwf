@@ -544,25 +544,27 @@ function renderStandingsSection(content) {
 		const card = el("div", { class: "group-card" });
 		card.appendChild(el("h3", { text: "Xếp hạng vòng Swiss" }));
 		const openHistory = function (name) { showTeamHistory(content, name); };
-		if (!content.participants || !content.participants.length) {
+		const hasMatches = swissMatches.length > 0;
+		const deleteCb = editMode ? function (name) {
+			if (!confirm("Xoá \"" + name + "\" khỏi danh sách?")) return;
+			content.participants = content.participants.filter(function (p) { return p !== name; });
+			saveData(); renderAll();
+		} : null;
+
+		if (editMode && !hasMatches) {
+			/* Chưa có trận + đang chỉnh sửa → bảng kéo-thả đánh số cặp (thay cho bảng xếp hạng rỗng) */
+			card.appendChild(renderSwissPairOrder(content));
+		} else if (!content.participants || !content.participants.length) {
 			card.appendChild(el("p", { class: "empty", style: "padding:12px 14px;" }, "Chưa có cặp đấu nào."));
 		} else if (rows.every(function (r) { return r.played === 0; })) {
-			card.appendChild(buildStandingsTable(rows, editMode ? function (name) {
-				if (!confirm("Xoá \"" + name + "\" khỏi danh sách?")) return;
-				content.participants = content.participants.filter(function (p) { return p !== name; });
-				saveData(); renderAll();
-			} : null, null, null, openHistory));
+			card.appendChild(buildStandingsTable(rows, deleteCb, null, null, openHistory, true));
 			card.appendChild(el("p", { class: "standings-note" }, "Chưa có trận nào ghi nhận kết quả."));
 		} else {
-			card.appendChild(buildStandingsTable(rows, editMode ? function (name) {
-				if (!confirm("Xoá \"" + name + "\" khỏi danh sách?")) return;
-				content.participants = content.participants.filter(function (p) { return p !== name; });
-				saveData(); renderAll();
-			} : null, null, null, openHistory));
+			card.appendChild(buildStandingsTable(rows, deleteCb, null, null, openHistory, true));
 			card.appendChild(el("p", { class: "standings-note" }, "Xếp theo: Thắng → Hiệu số séc → Hiệu số điểm. Đội nghỉ vòng (bye) khi không thể ghép cặp tránh tái đấu."));
 			card.appendChild(renderSwissBranches(rows));
 		}
-		if (editMode) {
+		if (editMode && hasMatches) {
 			const input = el("input", { type: "text", placeholder: "Tên cặp đấu mới" });
 			const addRow = el("div", { class: "add-player-row" }, [
 				input,
@@ -576,14 +578,134 @@ function renderStandingsSection(content) {
 				}, "+ Thêm"),
 			]);
 			card.appendChild(addRow);
+		}
+		if (editMode) {
 			card.appendChild(el("div", { class: "group-actions" }, [
-				el("button", { class: "btn small outline", type: "button", onclick: function () { generateNextSwissRound(content); } }, "⚡ Tự sinh vòng tiếp theo"),
+				el("button", {
+					class: "btn small outline", type: "button", onclick: function () {
+						if (!hasMatches && content.unassignedPairs && content.unassignedPairs.length) {
+							alert("Còn " + content.unassignedPairs.length + " cặp chưa xếp vào ô số — kéo vào bảng trước khi sinh lịch.");
+							return;
+						}
+						generateNextSwissRound(content);
+					}
+				}, "⚡ Tự sinh vòng tiếp theo"),
 			]));
 		}
 		wrap.appendChild(card);
 		outer.appendChild(renderSwissBracket(content));
 	}
 	return outer;
+}
+
+/* ================================================================
+   SWISS — bảng kéo-thả đánh số cặp (chỉ khi chưa có trận)
+   ================================================================ */
+function renderSwissPairOrder(content) {
+	const wrap = el("div", { class: "swiss-pair-order" });
+	if (!content.unassignedPairs) content.unassignedPairs = [];
+	const participants = content.participants || [];
+
+	wrap.appendChild(el("p", { class: "pool-hint" }, "Kéo từng cặp từ danh sách chờ vào ô số bên dưới để đánh số thứ tự — quyết định ghép Vòng 1 (1v2, 3v4, 5v6)."));
+
+	/* 1. Pool — cặp chưa xếp */
+	const chipsWrap = el("div", { class: "pool-chips" });
+	if (!content.unassignedPairs.length) {
+		chipsWrap.appendChild(el("p", { class: "empty", style: "padding:4px 2px;" }, "Không còn cặp nào trong danh sách chờ."));
+	} else {
+		content.unassignedPairs.forEach(function (name) {
+			const chip = el("span", { class: "pool-chip", text: name });
+			chip.setAttribute("draggable", "true");
+			chip.addEventListener("dragstart", function (e) {
+				dragPlayerName = name;
+				e.dataTransfer.setData("text/plain", name);
+				e.dataTransfer.effectAllowed = "move";
+			});
+			chip.appendChild(el("button", {
+				class: "pool-chip-del", type: "button", title: "Xoá khỏi danh sách",
+				onclick: function (e) {
+					e.stopPropagation();
+					content.unassignedPairs = content.unassignedPairs.filter(function (p) { return p !== name; });
+					saveData(); renderAll();
+				}
+			}, " ×"));
+			chipsWrap.appendChild(chip);
+		});
+	}
+	wrap.appendChild(chipsWrap);
+
+	/* 2. Bảng ô số — mỗi dòng là dropzone */
+	const table = el("table", { class: "standings swiss-order-table" });
+	const tbody = el("tbody");
+	participants.forEach(function (name, i) {
+		const row = el("tr", { class: "swiss-order-row" });
+		row.setAttribute("data-dropzone", "1");
+		row.addEventListener("dragover", function (e) { e.preventDefault(); row.classList.add("dropzone-active"); });
+		row.addEventListener("dragleave", function () { row.classList.remove("dropzone-active"); });
+		row.addEventListener("drop", function (e) {
+			e.preventDefault();
+			row.classList.remove("dropzone-active");
+			const pair = dragPlayerName || e.dataTransfer.getData("text/plain");
+			dragPlayerName = null;
+			if (!pair) return;
+			const old = participants[i];
+			if (old && old !== pair) content.unassignedPairs.push(old);
+			content.unassignedPairs = content.unassignedPairs.filter(function (p) { return p !== pair; });
+			participants[i] = pair;
+			saveData(); renderAll();
+		});
+		const nameCell = el("td", { class: "swiss-order-name", text: name });
+		nameCell.appendChild(el("button", {
+			class: "del-player", type: "button", title: "Đưa về danh sách chờ",
+			onclick: function () {
+				content.unassignedPairs.push(name);
+				content.participants = participants.filter(function (p) { return p !== name; });
+				saveData(); renderAll();
+			}
+		}, " ↩"));
+		row.appendChild(el("td", { class: "swiss-order-num", text: "Cặp " + (i + 1) }));
+		row.appendChild(nameCell);
+		tbody.appendChild(row);
+	});
+	/* Dòng cuối: ô trống để thêm vào cuối */
+	const appendRow = el("tr", { class: "swiss-order-row append" });
+	appendRow.setAttribute("data-dropzone", "1");
+	appendRow.addEventListener("dragover", function (e) { e.preventDefault(); appendRow.classList.add("dropzone-active"); });
+	appendRow.addEventListener("dragleave", function () { appendRow.classList.remove("dropzone-active"); });
+	appendRow.addEventListener("drop", function (e) {
+		e.preventDefault();
+		appendRow.classList.remove("dropzone-active");
+		const pair = dragPlayerName || e.dataTransfer.getData("text/plain");
+		dragPlayerName = null;
+		if (!pair) return;
+		content.unassignedPairs = content.unassignedPairs.filter(function (p) { return p !== pair; });
+		participants.push(pair);
+		content.participants = participants;
+		saveData(); renderAll();
+	});
+	appendRow.appendChild(el("td", { class: "swiss-order-num", text: "Cặp " + (participants.length + 1) }));
+	appendRow.appendChild(el("td", { class: "swiss-order-name empty", text: "+ Kéo cặp vào đây để thêm cuối" }));
+	tbody.appendChild(appendRow);
+	table.appendChild(tbody);
+	wrap.appendChild(table);
+
+	/* 3. Ô nhập cặp mới → thêm vào pool */
+	const input = el("input", { type: "text", placeholder: "Tên cặp đấu mới" });
+	const addRow = el("div", { class: "add-player-row" }, [
+		input,
+		el("button", {
+			class: "btn small", type: "button", onclick: function () {
+				const name = input.value.trim();
+				if (!name) return;
+				if (content.unassignedPairs.indexOf(name) !== -1 || content.participants.indexOf(name) !== -1) { alert("Cặp \"" + name + "\" đã có trong danh sách."); return; }
+				content.unassignedPairs.push(name);
+				saveData(); renderAll();
+			}
+		}, "+ Thêm vào danh sách chờ"),
+	]);
+	wrap.appendChild(addRow);
+
+	return wrap;
 }
 
 /* ================================================================
