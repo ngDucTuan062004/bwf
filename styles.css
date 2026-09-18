@@ -1151,3 +1151,47 @@ details.howto code {
 .quick-win-row { flex-wrap: wrap; gap: 8px; align-items: center; }
 .quick-win-label { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); }
 .quick-pick-badge { font-weight: 600; }
+
+/* ================================================================
+   SWISS ĐÁNH SỐ CẶP — pool + bảng ô số kéo-thả
+   ================================================================ */
+.swiss-pair-order {
+	padding: 4px 0 0;
+}
+.swiss-order-table {
+	margin-top: 6px;
+}
+.swiss-order-row td {
+	padding: 7px 10px;
+	border: 1px dashed var(--line);
+	background: #fff;
+}
+.swiss-order-row.append td {
+	color: var(--ink-soft);
+	font-style: italic;
+}
+.swiss-order-num {
+	width: 90px;
+	font-family: var(--font-display);
+	font-weight: 700;
+	font-size: 12.5px;
+	color: var(--court);
+	white-space: nowrap;
+}
+.swiss-order-name {
+	font-weight: 600;
+}
+.swiss-order-name .del-player {
+	margin-left: 8px;
+}
+/* dropzone là <tr> → highlight phải đặt trên td (border trên tr không hiện) */
+.swiss-order-row.dropzone-active td {
+	border-color: var(--gold);
+}
+.swiss-order-row.dropzone-active .swiss-order-num {
+	color: var(--gold);
+}
+.swiss-order-name.empty {
+	color: var(--ink-soft);
+	font-style: italic;
+}
