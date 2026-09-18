@@ -255,16 +255,6 @@ function openEditContentModal(content) {
 /* ================================================================
    SCORE HELPERS
    ================================================================ */
-function countSets(sets) {
-	let s1 = 0, s2 = 0, pf1 = 0, pf2 = 0;
-	sets.forEach(function (pair) {
-		const a = pair[0], b = pair[1];
-		pf1 += a; pf2 += b;
-		if (a > b) s1++; else if (b > a) s2++;
-	});
-	return { s1: s1, s2: s2, pf1: pf1, pf2: pf2 };
-}
-
 function computeStandings(participants, matches) {
 	return SwissCore.computeStandings(participants, matches);
 }
@@ -756,11 +746,8 @@ function readSetsFromInputs(inputsA, inputsB) {
 
 function renderMatchCard(m, content) {
 	const hasScore = !!(m.sets && m.sets.length);
-	let winner = null;
-	if (hasScore) {
-		const r = countSets(m.sets);
-		winner = r.s1 > r.s2 ? m.p1 : (r.s2 > r.s1 ? m.p2 : null);
-	}
+	const hasResult = hasScore || !!m.winner;
+	let winner = SwissCore.matchWinner(m);
 
 	const card = el("div", { class: "match-card" });
 
@@ -769,13 +756,17 @@ function renderMatchCard(m, content) {
 		const p2span = el("span", { class: "p" + (winner === m.p2 ? " winner" : ""), text: m.p2 });
 		const top = el("div", { class: "match-top" }, [
 			el("div", { class: "players" }, [p1span, el("span", { class: "vs", text: "vs" }), p2span]),
-			el("span", { class: "status-pill " + (hasScore ? "done" : "pending"), text: hasScore ? "Đã kết thúc" : "Sắp diễn ra" }),
+			el("span", { class: "status-pill " + (hasResult ? "done" : "pending"), text: hasResult ? "Đã kết thúc" : "Sắp diễn ra" }),
 		]);
 		card.appendChild(top);
-		if (hasScore) {
-			const setsRow = el("div", { class: "sets-row" });
-			m.sets.forEach(function (pair) { setsRow.appendChild(el("span", { class: "set-chip", text: pair[0] + "–" + pair[1] })); });
-			card.appendChild(setsRow);
+		if (hasResult) {
+			if (hasScore) {
+				const setsRow = el("div", { class: "sets-row" });
+				m.sets.forEach(function (pair) { setsRow.appendChild(el("span", { class: "set-chip", text: pair[0] + "–" + pair[1] })); });
+				card.appendChild(setsRow);
+			} else {
+				card.appendChild(el("span", { class: "no-score quick-pick-badge", text: "⚡ Chọn thắng nhanh" }));
+			}
 		} else {
 			card.appendChild(el("span", { class: "no-score", text: "Chưa có kết quả" }));
 		}
@@ -795,7 +786,7 @@ function renderMatchCard(m, content) {
 	const p2Input = el("input", { type: "text", list: dlId, value: m.p2 });
 	const top = el("div", { class: "match-top" }, [
 		el("div", { class: "players edit-row" }, [p1Input, el("span", { class: "vs", text: "vs" }), p2Input]),
-		el("span", { class: "status-pill " + (hasScore ? "done" : "pending"), text: hasScore ? "Đã kết thúc" : "Sắp diễn ra" }),
+		el("span", { class: "status-pill " + (hasResult ? "done" : "pending"), text: hasResult ? "Đã kết thúc" : "Sắp diễn ra" }),
 	]);
 	card.appendChild(top);
 
@@ -810,9 +801,17 @@ function renderMatchCard(m, content) {
 			el("span", { text: "Séc " + (i + 1) }), ia, el("span", { text: "–" }), ib,
 		]));
 	}
-	function commitScore() { m.sets = readSetsFromInputs(inputsA, inputsB); saveData(); renderAll(); }
+	function commitScore() { m.sets = readSetsFromInputs(inputsA, inputsB); if (m.sets) m.winner = null; saveData(); renderAll(); }
 	inputsA.concat(inputsB).forEach(function (inp) { inp.addEventListener("change", commitScore); });
 	card.appendChild(setsWrap);
+
+	const quickRow = el("div", { class: "edit-row quick-win-row" }, [
+		el("span", { class: "quick-win-label", text: "Chọn đội thắng nhanh:" }),
+		el("button", { class: "btn small", type: "button", onclick: function () { m.winner = m.p1; m.sets = null; saveData(); renderAll(); } }, "🏆 " + (m.p1 || "Đội 1")),
+		el("button", { class: "btn small", type: "button", onclick: function () { m.winner = m.p2; m.sets = null; saveData(); renderAll(); } }, "🏆 " + (m.p2 || "Đội 2")),
+		el("button", { class: "btn small outline", type: "button", onclick: function () { m.winner = null; m.sets = null; saveData(); renderAll(); } }, "Xoá kết quả"),
+	]);
+	card.appendChild(quickRow);
 
 	const dateInput = el("input", { type: "text", value: m.date || "", placeholder: "dd/mm/yyyy" });
 	const timeInput = el("input", { type: "text", value: m.time || "", placeholder: "giờ" });
