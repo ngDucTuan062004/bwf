@@ -831,7 +831,56 @@ function buildBracketMatchNode(content, m, swissMatches) {
 	return node;
 }
 
-function drawSwissConnectors() { /* Task 3 */ }
+let bracketResizeTimer = null;
+function drawSwissConnectors(track, participants, bracket) {
+	const svg = track.querySelector("svg.swiss-connectors");
+	if (svg) svg.remove();
+	const rounds = track.querySelectorAll(".swiss-round");
+	if (rounds.length < 2) return;
+	const teamsInRound = [];
+	bracket.forEach(function (roundData, ri) {
+		const map = {};
+		roundData.groups.forEach(function (g) {
+			g.matches.forEach(function (m) {
+				const node = rounds[ri].querySelector('.swiss-match[data-team="' + cssEscape(m.p1) + '"]');
+				const side = node ? node.querySelector('[data-team-side="' + cssEscape(m.p1) + '"]') : null;
+				if (side) map[m.p1] = side.getBoundingClientRect();
+			});
+		});
+		roundData.bye.forEach(function (name) {
+			const node = rounds[ri].querySelector('.swiss-bye-node[data-team="' + cssEscape(name) + '"]');
+			if (node) map[name] = node.getBoundingClientRect();
+		});
+		teamsInRound.push(map);
+	});
+	const trackRect = track.getBoundingClientRect();
+	const svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+	svgEl.setAttribute("class", "swiss-connectors");
+	svgEl.setAttribute("width", track.scrollWidth);
+	svgEl.setAttribute("height", track.scrollHeight);
+	svgEl.style.position = "absolute";
+	svgEl.style.top = "0";
+	svgEl.style.left = "0";
+	svgEl.style.pointerEvents = "none";
+	for (let ri = 0; ri < teamsInRound.length - 1; ri++) {
+		const cur = teamsInRound[ri], next = teamsInRound[ri + 1];
+		participants.forEach(function (name) {
+			const a = cur[name], b = next[name];
+			if (!a || !b) return;
+			const x1 = a.right - trackRect.left, y1 = (a.top + a.bottom) / 2 - trackRect.top;
+			const x2 = b.left - trackRect.left, y2 = (b.top + b.bottom) / 2 - trackRect.top;
+			const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+			path.setAttribute("d", "M " + x1 + " " + y1 + " C " + ((x1 + x2) / 2) + " " + y1 + ", " + ((x1 + x2) / 2) + " " + y2 + ", " + x2 + " " + y2);
+			path.setAttribute("fill", "none");
+			path.setAttribute("stroke", "var(--line-strong)");
+			path.setAttribute("stroke-width", "2");
+			path.setAttribute("opacity", "0.7");
+			svgEl.appendChild(path);
+		});
+	}
+	track.insertBefore(svgEl, track.firstChild);
+}
+function cssEscape(s) { return String(s).replace(/["\\]/g, "\\$&"); }
 
 function generateNextSwissRound(content) {
 	const participants = (content.participants || []).slice();
@@ -1126,6 +1175,19 @@ editBtn.addEventListener("click", async function () {
 	}
 	buildTabs();
 	renderAll();
+});
+
+window.addEventListener("resize", function () {
+	clearTimeout(bracketResizeTimer);
+	bracketResizeTimer = setTimeout(function () {
+		const track = document.querySelector("[data-bracket-track]");
+		if (!track) return;
+		const content = data.contents.find(function (c) { return c.id === activeId; });
+		if (!content || content.format !== "swiss") return;
+		const swissMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
+		const bracket = SwissCore.buildSwissBracket(content.participants || [], swissMatches, 5);
+		drawSwissConnectors(track, content.participants || [], bracket);
+	}, 150);
 });
 
 loadData();

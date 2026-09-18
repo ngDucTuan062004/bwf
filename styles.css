@@ -925,13 +925,20 @@ details.howto code {
 }
 
 .swiss-bracket-track {
+	position: relative;
 	display: flex;
 	gap: 12px;
 	overflow-x: auto;
 	padding-bottom: 8px;
 }
 
+.swiss-connectors {
+	z-index: 0;
+}
+
 .swiss-round {
+	position: relative;
+	z-index: 1;
 	flex: 0 0 230px;
 	min-width: 230px;
 	background: var(--bg);
