@@ -615,8 +615,8 @@ function branchCard(title, note, rows, cls) {
 }
 
 function showTeamHistory(content, name) {
-	const overlay = el("div", { class: "modal-overlay" });
-	const modal = el("div", { class: "modal" });
+	const overlay = el("div", { class: "modal-overlay team-history-overlay" });
+	const modal = el("div", { class: "modal team-history-modal" });
 	modal.appendChild(el("h3", { text: "Lịch sử thi đấu — " + name }));
 	const list = el("div", { class: "team-history-list" });
 	const myMatches = content.matches.filter(function (m) { return m.p1 === name || m.p2 === name; });
@@ -637,10 +637,10 @@ function showTeamHistory(content, name) {
 		});
 	}
 	modal.appendChild(list);
-	modal.appendChild(el("button", { class: "btn small", type: "button", onclick: function () { document.body.removeChild(overlay); } }, "Đóng"));
+	modal.appendChild(el("button", { class: "btn small", type: "button", onclick: function () { overlay.remove(); } }, "Đóng"));
 	overlay.appendChild(modal);
 	document.body.appendChild(overlay);
-	overlay.addEventListener("click", function (e) { if (e.target === overlay) document.body.removeChild(overlay); });
+	overlay.addEventListener("click", function (e) { if (e.target === overlay) overlay.remove(); });
 }
 
 /* ================================================================
@@ -747,6 +747,7 @@ function readSetsFromInputs(inputsA, inputsB) {
 function renderMatchCard(m, content) {
 	const hasScore = !!(m.sets && m.sets.length);
 	const hasResult = hasScore || !!m.winner;
+	const isSwiss = isSwissStage(m.stage);
 	let winner = SwissCore.matchWinner(m);
 
 	const card = el("div", { class: "match-card" });
@@ -764,8 +765,10 @@ function renderMatchCard(m, content) {
 				const setsRow = el("div", { class: "sets-row" });
 				m.sets.forEach(function (pair) { setsRow.appendChild(el("span", { class: "set-chip", text: pair[0] + "–" + pair[1] })); });
 				card.appendChild(setsRow);
-			} else {
+			} else if (isSwiss) {
 				card.appendChild(el("span", { class: "no-score quick-pick-badge", text: "⚡ Chọn thắng nhanh" }));
+			} else {
+				card.appendChild(el("span", { class: "no-score", text: "Đã kết thúc" }));
 			}
 		} else {
 			card.appendChild(el("span", { class: "no-score", text: "Chưa có kết quả" }));
@@ -805,13 +808,15 @@ function renderMatchCard(m, content) {
 	inputsA.concat(inputsB).forEach(function (inp) { inp.addEventListener("change", commitScore); });
 	card.appendChild(setsWrap);
 
-	const quickRow = el("div", { class: "edit-row quick-win-row" }, [
-		el("span", { class: "quick-win-label", text: "Chọn đội thắng nhanh:" }),
-		el("button", { class: "btn small", type: "button", onclick: function () { m.winner = m.p1; m.sets = null; saveData(); renderAll(); } }, "🏆 " + (m.p1 || "Đội 1")),
-		el("button", { class: "btn small", type: "button", onclick: function () { m.winner = m.p2; m.sets = null; saveData(); renderAll(); } }, "🏆 " + (m.p2 || "Đội 2")),
-		el("button", { class: "btn small outline", type: "button", onclick: function () { m.winner = null; m.sets = null; saveData(); renderAll(); } }, "Xoá kết quả"),
-	]);
-	card.appendChild(quickRow);
+	if (isSwiss) {
+		const quickRow = el("div", { class: "edit-row quick-win-row" }, [
+			el("span", { class: "quick-win-label", text: "Chọn đội thắng nhanh:" }),
+			el("button", { class: "btn small", type: "button", onclick: function () { if (!m.p1 || !m.p2) return; m.winner = m.p1; m.sets = null; saveData(); renderAll(); } }, "🏆 " + (m.p1 || "Đội 1")),
+			el("button", { class: "btn small", type: "button", onclick: function () { if (!m.p1 || !m.p2) return; m.winner = m.p2; m.sets = null; saveData(); renderAll(); } }, "🏆 " + (m.p2 || "Đội 2")),
+			el("button", { class: "btn small outline", type: "button", onclick: function () { m.winner = null; m.sets = null; saveData(); renderAll(); } }, "Xoá kết quả"),
+		]);
+		card.appendChild(quickRow);
+	}
 
 	const dateInput = el("input", { type: "text", value: m.date || "", placeholder: "dd/mm/yyyy" });
 	const timeInput = el("input", { type: "text", value: m.time || "", placeholder: "giờ" });
@@ -828,7 +833,7 @@ function renderMatchCard(m, content) {
 	function commitMeta() { m.date = dateInput.value; m.time = timeInput.value; m.court = courtInput.value; m.referee = refInput.value; saveData(); }
 	[dateInput, timeInput, courtInput, refInput].forEach(function (inp) { inp.addEventListener("change", commitMeta); });
 
-	function commitPlayers() { m.p1 = p1Input.value.trim() || m.p1; m.p2 = p2Input.value.trim() || m.p2; saveData(); renderAll(); }
+	function commitPlayers() { m.p1 = p1Input.value.trim() || m.p1; m.p2 = p2Input.value.trim() || m.p2; if (m.winner && m.winner !== m.p1 && m.winner !== m.p2) m.winner = null; saveData(); renderAll(); }
 	[p1Input, p2Input].forEach(function (inp) { inp.addEventListener("change", commitPlayers); });
 
 	const actions = el("div", { class: "match-edit-actions" }, [
