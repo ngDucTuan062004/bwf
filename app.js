@@ -253,6 +253,37 @@ function openEditContentModal(content) {
 }
 
 /* ================================================================
+   RESET CONTENT — khôi phục nội dung đang mở về trạng thái seed
+   ================================================================ */
+function applySeedToContent(content, seedContent) {
+	if (seedContent) {
+		content.label = seedContent.label;
+		content.format = seedContent.format;
+		content.scoringNote = seedContent.scoringNote;
+		content.participants = (seedContent.participants || []).slice();
+		content.matches = (seedContent.matches || []).slice();
+		content.unassignedPairs = (seedContent.unassignedPairs || []).slice(); // seed thiếu field → []
+	} else {
+		content.matches = [];
+		content.unassignedPairs = [];
+	}
+}
+
+async function resetContentToSeed(content) {
+	try {
+		const res = await fetch("data.json", { cache: "no-store" });
+		if (!res.ok) throw new Error("HTTP " + res.status);
+		const seed = await res.json();
+		const seedContent = (seed.contents || []).find(function (c) { return c.id === content.id; });
+		applySeedToContent(content, seedContent);
+		saveData();
+		renderAll();
+	} catch (e) {
+		alert("Reset thất bại: " + e.message);
+	}
+}
+
+/* ================================================================
    SCORE HELPERS
    ================================================================ */
 function computeStandings(participants, matches) {
@@ -604,6 +635,12 @@ function renderStandingsSection(content) {
 						generateNextSwissRound(content);
 					}
 				}, "⚡ Tự sinh vòng tiếp theo"),
+				el("button", {
+					class: "btn small outline danger-text", type: "button", onclick: function () {
+						if (!confirm("Reset nội dung này về trạng thái ban đầu? Mọi trận đã nhập sẽ bị xóa.")) return;
+						resetContentToSeed(content);
+					}
+				}, "↺ Reset"),
 			]));
 		}
 		wrap.appendChild(card);
