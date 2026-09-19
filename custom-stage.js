@@ -73,25 +73,15 @@
 		};
 	}
 
-	/* Sort nhóm 1 thua: Thắng desc → Thua asc → seed asc */
-	function lossGroupSort(participants) {
-		return function (a, b) {
-			const recA = a.rec, recB = b.rec;
-			return (recB.w - recA.w) ||
-				(recA.l - recB.l) ||
-				(seedIndex(participants, a.name) - seedIndex(participants, b.name));
-		};
-	}
-
 	function pairKey(a, b) { return [a, b].sort().join("|"); }
 
-	/* Ghép liền kề trong list đã sort seed-asc, tránh tái đấu; lẻ → đội cuối bye */
-	function pairAdjacent(list, participants, matches) {
+	/* Ghép liền kề trong list (mặc định seed-asc; sortFn tùy chọn theo thứ hạng), tránh tái đấu; lẻ → đội cuối bye */
+	function pairAdjacent(list, participants, matches, sortFn) {
 		const played = new Set();
 		matches.forEach(function (m) {
 			if (m.p1 && m.p2) played.add(pairKey(m.p1, m.p2));
 		});
-		const sorted = list.slice().sort(function (a, b) {
+		const sorted = list.slice().sort(sortFn || function (a, b) {
 			return seedIndex(participants, a) - seedIndex(participants, b);
 		});
 		const pairs = [], bye = [];
@@ -200,13 +190,14 @@
 			});
 			return { pairs: pairs, bye: bye };
 		}
-		/* R3+: chỉ ghép nhóm 1 thua (0 thua chờ); nhóm lẻ → đội cuối bye */
+		/* R3+: chỉ ghép nhóm 1 thua (0 thua chờ); sort Thắng desc → Thua asc → seed asc; nhóm lẻ → đội cuối bye */
 		const oneLoss = participants.filter(function (t) { return rec[t].l === 1; });
 		if (!oneLoss.length) return { pairs: [], bye: [] };
-		const sorted = oneLoss.map(function (name) {
-			return { name: name, rec: rec[name] };
-		}).sort(lossGroupSort(participants)).map(function (x) { return x.name; });
-		const res = pairAdjacent(sorted, participants, matches);
+		const res = pairAdjacent(oneLoss, participants, matches, function (a, b) {
+			return (rec[b].w - rec[a].w) ||
+				(rec[a].l - rec[b].l) ||
+				(seedIndex(participants, a) - seedIndex(participants, b));
+		});
 		return { pairs: res.pairs, bye: res.bye };
 	}
 

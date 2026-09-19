@@ -886,7 +886,7 @@ function customRankRow(state, name, i) {
 	const rec = (state.records && state.records[name]) || { w: 0, l: 0 };
 	const medals = ["🥇", "🥈", "🥉"];
 	return el("div", { class: "custom-rank-row rank-" + (i + 1) }, [
-		el("span", { class: "custom-rank-medal", text: medals[i] || (i + 1) + "." }),
+		el("span", { class: "custom-rank-medal", text: medals[i] }),
 		el("span", { class: "custom-rank-name", text: name }),
 		el("span", { class: "custom-rank-record", text: rec.w + "-" + rec.l }),
 	]);
