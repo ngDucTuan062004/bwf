@@ -263,6 +263,11 @@ function isSwissStage(stage) {
 	return /^Vòng (Swiss )?\d+$/.test(stage || "");
 }
 
+/* Nhóm 8 đội đúng theo thể thức custom (aaa.md) — chỉ áp dụng cho format "swiss" đủ 8 cặp */
+function isCustomStage(content) {
+	return content.format === "swiss" && (content.participants || []).length === 8;
+}
+
 function allParticipants(content) {
 	if (content.format === "group") {
 		let list = (content.unassignedPlayers || []).slice();
@@ -552,7 +557,15 @@ function renderStandingsSection(content) {
 			saveData(); renderAll();
 		} : null;
 
-		if (editMode && !hasMatches) {
+		if (isCustomStage(content)) {
+			/* Nhóm 8 đội: xếp hạng tùy chỉnh thay bảng standings + nhánh; không dùng pair order */
+			const state = CustomStage.customComputeState(content.participants || [], swissMatches);
+			if (!hasMatches) {
+				card.appendChild(el("p", { class: "standings-note" }, "Chưa có trận nào — bấm ⚡ để sinh Vòng 1"));
+			} else {
+				card.appendChild(renderCustomRanking(state));
+			}
+		} else if (editMode && !hasMatches) {
 			/* Chưa có trận + đang chỉnh sửa → bảng kéo-thả đánh số cặp (thay cho bảng xếp hạng rỗng) */
 			card.appendChild(renderSwissPairOrder(content));
 		} else if (!content.participants || !content.participants.length) {
@@ -594,7 +607,7 @@ function renderStandingsSection(content) {
 			]));
 		}
 		wrap.appendChild(card);
-		outer.appendChild(renderSwissBracket(content));
+		outer.appendChild(isCustomStage(content) ? renderCustomBracket(content) : renderSwissBracket(content));
 	}
 	return outer;
 }
@@ -831,6 +844,109 @@ function buildBracketMatchNode(content, m, swissMatches) {
 	]));
 	node.appendChild(el("div", { class: "swiss-score", text: scoreText }));
 	return node;
+}
+
+/* ================================================================
+   CUSTOM STAGE — 8 đội: match card, bracket podium & xếp hạng
+   ================================================================ */
+function buildCustomMatchNode(content, m, records) {
+	const winner = CustomStage.matchWinner(m);
+	const hasScore = !!(m.sets && m.sets.length);
+	const hasResult = hasScore || !!m.winner;
+	const rec1 = (records && records[m.p1]) || { w: 0, l: 0 };
+	const rec2 = (records && records[m.p2]) || { w: 0, l: 0 };
+	const cs = hasScore ? CustomStage.countSets(m.sets) : null;
+	const scoreText = hasScore
+		? m.sets.map(function (p) { return p[0] + "–" + p[1]; }).join(", ") + " · " + cs.s1 + "–" + cs.s2
+		: (m.winner ? "chọn nhanh" : "—");
+	const idx1 = (content.participants || []).indexOf(m.p1);
+	const idx2 = (content.participants || []).indexOf(m.p2);
+	const name1 = (idx1 >= 0 ? (idx1 + 1) + ". " : "") + m.p1;
+	const name2 = (idx2 >= 0 ? (idx2 + 1) + ". " : "") + m.p2;
+	const node = el("div", { class: "swiss-match", "data-team": m.p1, "data-round": m.stage });
+	const side1 = el("div", { class: "swiss-side" + (winner === m.p1 ? " winner" : (winner ? " loser" : "")), "data-team-side": m.p1 }, [
+		el("button", { class: "swiss-side-name link-name", type: "button", text: name1, onclick: function () { showTeamHistory(content, m.p1); } }),
+		el("span", { class: "swiss-record", text: rec1.w + "-" + rec1.l }),
+	]);
+	if (winner === m.p1) side1.appendChild(el("span", { class: "swiss-win-badge", text: "WINNER" }));
+	else if (winner) side1.appendChild(el("span", { class: "swiss-loss-badge", text: "LOSER" }));
+	node.appendChild(side1);
+	const side2 = el("div", { class: "swiss-side" + (winner === m.p2 ? " winner" : (winner ? " loser" : "")), "data-team-side": m.p2 }, [
+		el("button", { class: "swiss-side-name link-name", type: "button", text: name2, onclick: function () { showTeamHistory(content, m.p2); } }),
+		el("span", { class: "swiss-record", text: rec2.w + "-" + rec2.l }),
+	]);
+	if (winner === m.p2) side2.appendChild(el("span", { class: "swiss-win-badge", text: "WINNER" }));
+	else if (winner) side2.appendChild(el("span", { class: "swiss-loss-badge", text: "LOSER" }));
+	node.appendChild(side2);
+	node.appendChild(el("div", { class: "swiss-score", text: scoreText + " · " + (hasResult ? "Đã đấu" : "Chưa đấu") }));
+	return node;
+}
+
+function customRankRow(state, name, i) {
+	const rec = (state.records && state.records[name]) || { w: 0, l: 0 };
+	const medals = ["🥇", "🥈", "🥉"];
+	return el("div", { class: "custom-rank-row rank-" + (i + 1) }, [
+		el("span", { class: "custom-rank-medal", text: medals[i] || (i + 1) + "." }),
+		el("span", { class: "custom-rank-name", text: name }),
+		el("span", { class: "custom-rank-record", text: rec.w + "-" + rec.l }),
+	]);
+}
+
+function renderCustomRanking(state) {
+	const wrap = el("div", { class: "custom-rank" });
+	state.ranking.forEach(function (name, i) {
+		wrap.appendChild(customRankRow(state, name, i));
+	});
+	if (state.eliminated && state.eliminated.length) {
+		wrap.appendChild(el("p", { class: "custom-eliminated", text: "Đã loại: " + state.eliminated.join(", ") }));
+	}
+	return wrap;
+}
+
+function renderCustomBracket(content) {
+	const section = el("div", { class: "swiss-bracket-card" });
+	section.appendChild(el("h3", { class: "swiss-bracket-title", text: "Sơ đồ thi đấu — nhóm 8 đội" }));
+
+	const participants = content.participants || [];
+	const customMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
+	const bracket = CustomStage.customBuildBracket(participants, customMatches);
+	const state = bracket.state;
+
+	const track = el("div", { class: "swiss-bracket-track", "data-bracket-track": "1" });
+	bracket.rounds.forEach(function (roundData) {
+		if (roundData.round > 6) return; /* cột 7 = podium, dựng riêng bên dưới */
+		const col = el("div", { class: "swiss-round" });
+		col.appendChild(el("h4", { class: "swiss-round-head", text: "Vòng " + roundData.round }));
+		let played = 0;
+		roundData.groups.forEach(function (group) {
+			group.matches.forEach(function (m) {
+				col.appendChild(buildCustomMatchNode(content, m, state.records));
+				played++;
+			});
+		});
+		if (!played) col.appendChild(el("div", { class: "swiss-empty-slot", text: "Chưa ghép cặp" }));
+		track.appendChild(col);
+	});
+
+	const podiumCol = el("div", { class: "swiss-round custom-podium" });
+	podiumCol.appendChild(el("h4", { class: "swiss-round-head", text: "Vòng 7" }));
+	podiumCol.appendChild(el("div", { class: "custom-rank" }, state.ranking.map(function (name, i) {
+		return customRankRow(state, name, i);
+	})));
+	if (state.phase === "complete") {
+		if (state.eliminated && state.eliminated.length) {
+			podiumCol.appendChild(el("div", { class: "custom-eliminated", text: "Đã loại: " + state.eliminated.join(", ") }));
+		}
+	} else {
+		podiumCol.appendChild(el("div", { class: "swiss-empty-slot", text: "Tạm xếp hạng — còn vòng đấu" }));
+	}
+	track.appendChild(podiumCol);
+
+	section.appendChild(track);
+	requestAnimationFrame(function () {
+		drawSwissConnectors(track, participants, bracket.rounds);
+	});
+	return section;
 }
 
 let bracketResizeTimer = null;
@@ -1187,7 +1303,9 @@ window.addEventListener("resize", function () {
 		const content = data.contents.find(function (c) { return c.id === activeId; });
 		if (!content || content.format !== "swiss") return;
 		const swissMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
-		const bracket = SwissCore.buildSwissBracket(content.participants || [], swissMatches, 5);
+		const bracket = isCustomStage(content)
+			? CustomStage.customBuildBracket(content.participants || [], swissMatches).rounds
+			: SwissCore.buildSwissBracket(content.participants || [], swissMatches, 5);
 		drawSwissConnectors(track, content.participants || [], bracket);
 	}, 150);
 });
