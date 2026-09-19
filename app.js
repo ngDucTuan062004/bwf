@@ -801,7 +801,9 @@ function renderSwissBracket(content) {
 		track.appendChild(col);
 	});
 	section.appendChild(track);
-	drawSwissConnectors(track, participants, bracket);
+	requestAnimationFrame(function () {
+		drawSwissConnectors(track, participants, bracket);
+	});
 	return section;
 }
 

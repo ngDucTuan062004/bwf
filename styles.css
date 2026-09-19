@@ -1037,15 +1037,6 @@ details.howto code {
 	background: #fff;
 }
 
-.swiss-bye {
-	font-size: 12px;
-	color: var(--pending);
-	font-weight: 600;
-	padding: 6px 10px;
-	background: #FBEFDC;
-	border-radius: 7px;
-}
-
 /* ================================================================
    SWISS NÂNG CẤP — thành tích, nhánh Thắng/Thua, modal lịch sử
    ================================================================ */
