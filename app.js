@@ -882,22 +882,23 @@ function buildCustomMatchNode(content, m, records) {
 	return node;
 }
 
-function customRankRow(state, name, i) {
+function customRankRow(state, name, i, isFinal) {
 	const rec = (state.records && state.records[name]) || { w: 0, l: 0 };
 	const medals = ["🥇", "🥈", "🥉"];
 	return el("div", { class: "custom-rank-row rank-" + (i + 1) }, [
-		el("span", { class: "custom-rank-medal", text: medals[i] }),
+		el("span", { class: "custom-rank-medal", text: isFinal ? medals[i] : (i + 1) + "." }),
 		el("span", { class: "custom-rank-name", text: name }),
 		el("span", { class: "custom-rank-record", text: rec.w + "-" + rec.l }),
 	]);
 }
 
 function renderCustomRanking(state) {
+	const isFinal = state.phase === "complete";
 	const wrap = el("div", { class: "custom-rank" });
 	state.ranking.forEach(function (name, i) {
-		wrap.appendChild(customRankRow(state, name, i));
+		wrap.appendChild(customRankRow(state, name, i, isFinal));
 	});
-	if (state.eliminated && state.eliminated.length) {
+	if (isFinal && state.eliminated && state.eliminated.length) {
 		wrap.appendChild(el("p", { class: "custom-eliminated", text: "Đã loại: " + state.eliminated.join(", ") }));
 	}
 	return wrap;
@@ -930,13 +931,8 @@ function renderCustomBracket(content) {
 
 	const podiumCol = el("div", { class: "swiss-round custom-podium" });
 	podiumCol.appendChild(el("h4", { class: "swiss-round-head", text: "Vòng 7" }));
-	podiumCol.appendChild(el("div", { class: "custom-rank" }, state.ranking.map(function (name, i) {
-		return customRankRow(state, name, i);
-	})));
 	if (state.phase === "complete") {
-		if (state.eliminated && state.eliminated.length) {
-			podiumCol.appendChild(el("div", { class: "custom-eliminated", text: "Đã loại: " + state.eliminated.join(", ") }));
-		}
+		podiumCol.appendChild(renderCustomRanking(state));
 	} else {
 		podiumCol.appendChild(el("div", { class: "swiss-empty-slot", text: "Tạm xếp hạng — còn vòng đấu" }));
 	}
