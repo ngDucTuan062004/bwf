@@ -1226,3 +1226,84 @@ details.howto code {
 	color: var(--ink-soft);
 	font-style: italic;
 }
+
+/* ================================================================
+   CUSTOM STAGE — nhóm 8 đội: xếp hạng 🥇🥈🥉 + WINNER/LOSER + podium
+   ================================================================ */
+.custom-rank {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 12px 14px;
+}
+.custom-rank-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 13.5px;
+	padding: 6px 10px;
+	background: var(--bg);
+	border: 1px solid var(--line);
+	border-radius: 8px;
+	min-width: 0;
+}
+.custom-rank-row.rank-1 { background: #FFF9E6; border-color: var(--gold); }
+.custom-rank-row.rank-2 { background: #F1F3F6; border-color: var(--line-strong); }
+.custom-rank-row.rank-3 { background: #FDF3EE; border-color: var(--line-strong); }
+.custom-rank-medal {
+	flex: 0 0 28px;
+	text-align: center;
+	font-size: 18px;
+	line-height: 1.2;
+}
+.custom-rank-name {
+	flex: 1;
+	min-width: 0;
+	font-weight: 600;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.custom-rank-record {
+	flex: 0 0 auto;
+	font-family: var(--font-display);
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--court);
+	background: #fff;
+	border: 1px solid var(--line);
+	border-radius: 10px;
+	padding: 1px 8px;
+}
+.custom-eliminated {
+	margin: 6px 0 0;
+	font-size: 12.5px;
+	color: var(--ink-soft);
+	line-height: 1.5;
+}
+.swiss-side.loser {
+	color: var(--danger);
+}
+.swiss-side.winner .swiss-win-badge,
+.swiss-side.loser .swiss-loss-badge {
+	flex: 0 0 auto;
+	font-family: var(--font-display);
+	font-size: 9px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	border-radius: 4px;
+	padding: 1px 5px;
+	white-space: nowrap;
+}
+.swiss-side.winner .swiss-win-badge {
+	background: #E7F6E9;
+	border: 1px solid #B7E4C0;
+	color: var(--win);
+}
+.swiss-side.loser .swiss-loss-badge {
+	background: #FDF3EE;
+	border: 1px solid #F2C4A8;
+	color: var(--danger);
+}
+.custom-podium .custom-rank {
+	padding: 0;
+}
