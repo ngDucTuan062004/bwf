@@ -597,7 +597,7 @@ function renderStandingsSection(content) {
 			card.appendChild(el("div", { class: "group-actions" }, [
 				el("button", {
 					class: "btn small outline", type: "button", onclick: function () {
-						if (!hasMatches && content.unassignedPairs && content.unassignedPairs.length) {
+						if (!isCustomStage(content) && !hasMatches && content.unassignedPairs && content.unassignedPairs.length) {
 							alert("Còn " + content.unassignedPairs.length + " cặp chưa xếp vào ô số — kéo vào bảng trước khi sinh lịch.");
 							return;
 						}
@@ -1009,11 +1009,11 @@ function generateNextSwissRound(content) {
 		if (isSwissStage(m.stage) && existingRounds.indexOf(m.stage) === -1) existingRounds.push(m.stage);
 	});
 	const roundNum = existingRounds.length + 1;
-	if (roundNum > 5) { alert("Đã đủ 5 vòng Swiss."); return; }
+	if (roundNum > (isCustomStage(content) ? 6 : 5)) { alert(isCustomStage(content) ? "Đã đủ 6 vòng." : "Đã đủ 5 vòng Swiss."); return; }
 	const stage = "Vòng " + roundNum;
 
 	const swissMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
-	const res = SwissCore.pairRound(participants, swissMatches, roundNum);
+	const res = isCustomStage(content) ? CustomStage.customPairNextRound(participants, swissMatches, roundNum) : SwissCore.pairRound(participants, swissMatches, roundNum);
 	if (!res.pairs.length) { alert("Không thể sinh thêm cặp đấu mới."); return; }
 	res.pairs.forEach(function (pair) {
 		content.matches.push({ stage: stage, p1: pair[0], p2: pair[1], date: "", time: "", court: "", referee: "", sets: null });
