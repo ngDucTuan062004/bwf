@@ -1,7 +1,8 @@
 /* ================================================================
    custom-stage.js — Custom Stage cho 8 đội (thuần, không DOM, không gọi swiss-core)
-   Quy trình theo aaa.md: R1 tuần tự → R2 nhóm theo record → R3+ loại
-   (chỉ ghép 1 thua) → vòng tròn top ≤3 → xếp hạng top 3.
+   Cấu trúc cố định 14 trận (double-bracket style) theo design/brakcket_8team.html:
+   R1 (4 trận seed) → R2 (2 nhánh thắng + 2 nhánh thua) → R3 (2) → R4 (1) →
+   R6 (1) → R5 (1 tranh hạng 3) → R7 (1 chung kết). Mỗi trận có pos cố định.
    Dùng chung: browser (script tag → window.CustomStage) + Node ESM/CJS
    ================================================================ */
 (function (root, factory) {
@@ -73,183 +74,113 @@
 		};
 	}
 
-	function pairKey(a, b) { return [a, b].sort().join("|"); }
+	/* ---- Cấu trúc cố định 14 trận ---- */
+	const STRUCTURE = [
+		{ pos: "R1.1", round: 1, feeds: [["S", 1], ["S", 2]] },
+		{ pos: "R1.2", round: 1, feeds: [["S", 3], ["S", 4]] },
+		{ pos: "R1.3", round: 1, feeds: [["S", 5], ["S", 6]] },
+		{ pos: "R1.4", round: 1, feeds: [["S", 7], ["S", 8]] },
+		{ pos: "R2.1", round: 2, feeds: [["W", "R1.1"], ["W", "R1.2"]] },
+		{ pos: "R2.2", round: 2, feeds: [["W", "R1.3"], ["W", "R1.4"]] },
+		{ pos: "R2.3", round: 2, feeds: [["L", "R1.1"], ["L", "R1.2"]] },
+		{ pos: "R2.4", round: 2, feeds: [["L", "R1.3"], ["L", "R1.4"]] },
+		{ pos: "R3.1", round: 3, feeds: [["L", "R2.1"], ["W", "R2.3"]] },
+		{ pos: "R3.2", round: 3, feeds: [["L", "R2.2"], ["W", "R2.4"]] },
+		{ pos: "R4.1", round: 4, feeds: [["W", "R3.1"], ["W", "R3.2"]] },
+		{ pos: "R6.1", round: 6, feeds: [["W", "R2.1"], ["W", "R2.2"]] },
+		{ pos: "R5.1", round: 5, feeds: [["W", "R4.1"], ["L", "R6.1"]] },
+		{ pos: "R7.1", round: 7, feeds: [["W", "R6.1"], ["W", "R5.1"]] },
+	];
 
-	/* Ghép liền kề trong list (mặc định seed-asc; sortFn tùy chọn theo thứ hạng), tránh tái đấu; lẻ → đội cuối bye */
-	function pairAdjacent(list, participants, matches, sortFn) {
-		const played = new Set();
-		matches.forEach(function (m) {
-			if (m.p1 && m.p2) played.add(pairKey(m.p1, m.p2));
-		});
-		const sorted = list.slice().sort(sortFn || function (a, b) {
-			return seedIndex(participants, a) - seedIndex(participants, b);
-		});
-		const pairs = [], bye = [];
-		const res = [];
-		for (let i = 0; i < sorted.length; i++) res.push([sorted[i]]);
-		const used = new Set();
-		for (let i = 0; i < res.length; i++) {
-			if (used.has(res[i][0]) || res[i].length === 2) continue;
-			const a = res[i][0];
-			let b = null;
-			for (let j = i + 1; j < res.length; j++) {
-				if (used.has(res[j][0])) continue;
-				if (!played.has(pairKey(a, res[j][0]))) { b = res[j][0]; used.add(b); break; }
-			}
-			if (b) { used.add(a); res[i] = [a, b]; }
-			else { bye.push(a); used.add(a); }
+	/* pos của 1 trận: ưu tiên m.pos; fallback suy từ stage + thứ tự trong stage.
+	   LƯU Ý: fallback chỉ dùng cho dữ liệu legacy — KHÔNG tin cậy nếu trận cũ
+	   không theo thứ tự cấu trúc cố định. Mọi trận mới đều có pos tường minh. */
+	function derivePos(matches, m) {
+		if (m.pos) return m.pos;
+		const r = roundOf(m.stage);
+		const same = matches.filter(function (x) { return roundOf(x.stage) === r; });
+		return "R" + r + "." + (same.indexOf(m) + 1);
+	}
+
+	/* Giải 1 feed: seed hoặc W/L của trận nguồn */
+	function resolveFeed(feed, participants, byPos) {
+		if (feed[0] === "S") {
+			const i = feed[1] - 1;
+			return i < participants.length ? participants[i] : null;
 		}
-		res.forEach(function (r) { if (r.length === 2) pairs.push(r); });
-		return { pairs: pairs, bye: bye };
+		const src = byPos[feed[1]];
+		if (!src) return null;
+		const w = matchWinner(src);
+		if (!w) return null;
+		return feed[0] === "W" ? w : (w === src.p1 ? src.p2 : src.p1);
 	}
 
-	/* Vòng 1: ghép tuần tự [i],[i+1]; lẻ → bye */
-	function customCreateRound1(teams) {
-		const pairs = [], bye = [];
-		for (let i = 0; i < teams.length; i += 2) {
-			if (i + 1 < teams.length) pairs.push([teams[i], teams[i + 1]]);
-			else bye.push(teams[i]);
-		}
-		return { pairs: pairs, bye: bye };
-	}
-
-	/* Cặp 2 đội ít thua nhất trong active (tiebreak Thắng desc, seed asc) — vòng đầu vòng tròn */
-	function firstRoundrobinPair(active, rec, participants) {
-		return active.slice().sort(function (a, b) {
-			return (rec[a].l - rec[b].l) ||
-				(rec[b].w - rec[a].w) ||
-				(seedIndex(participants, a) - seedIndex(participants, b));
-		}).slice(0, 2);
-	}
-
-	/* Số đội còn trụ (l<2) tính tới trước vòng roundNum (chỉ đếm trận round < roundNum) */
-	function activeBefore(participants, matches, roundNum) {
-		let maxRound = 0;
-		matches.forEach(function (m) { maxRound = Math.max(maxRound, roundOf(m.stage)); });
-		const before = roundNum > maxRound ? matches : matches.filter(function (m) { return roundOf(m.stage) < roundNum; });
-		const rec = buildRecords(participants, before);
-		return participants.filter(function (t) { return rec[t].l < 2; });
-	}
-
-	/* Vòng đầu tiên active.length <= 3 (bắt đầu vòng tròn) */
-	function rrStartRound(participants, matches, roundNum) {
-		for (let r = 1; r <= roundNum; r++) {
-			if (activeBefore(participants, matches, r).length <= 3) return r;
-		}
-		return roundNum;
-	}
-
-	/* Vòng tròn khi active.length <= 3: vòng đầu = cặp 2 đội ít thua nhất, vòng sau = cặp còn lại */
-	function pairRoundrobin(participants, matches, roundNum, active, rec) {
-		if (active.length <= 1) return { pairs: [], bye: [] };
-		if (active.length === 2) {
-			return { pairs: [[active[0], active[1]]], bye: [] };
-		}
-		const start = rrStartRound(participants, matches, roundNum);
-		const earlyRec = buildRecords(participants, matches.filter(function (m) { return roundOf(m.stage) < start; }));
-		const earlyActive = participants.filter(function (t) { return earlyRec[t].l < 2; });
-		const rr = firstRoundrobinPair(earlyActive, earlyRec, participants);
-		const rrKey = pairKey(rr[0], rr[1]);
-		if (roundNum === start) {
-			/* vòng đầu: chỉ 1 cặp (2 đội ít thua nhất) */
-			return { pairs: [[rr[0], rr[1]]], bye: [] };
-		}
-		/* vòng sau: các cặp còn lại trong các đội trụ — cho phép tái đấu (aaa.md R6) */
-		const teams = active.slice().sort(function (a, b) {
-			return seedIndex(participants, a) - seedIndex(participants, b);
-		});
-		const all = [];
-		for (let i = 0; i < teams.length; i++) {
-			for (let j = i + 1; j < teams.length; j++) all.push([teams[i], teams[j]]);
-		}
-		return { pairs: all.filter(function (p) { return pairKey(p[0], p[1]) !== rrKey; }), bye: [] };
-	}
-
-	/* Sinh cặp cho vòng roundNum theo quy trình custom 8 đội */
-	function customPairNextRound(participants, matches, roundNum) {
-		const rec = buildRecords(participants, matches);
-		const active = participants.filter(function (t) { return rec[t].l < 2; });
-
-		if (roundNum === 1) return customCreateRound1(participants);
-		if (active.length <= 3) return pairRoundrobin(participants, matches, roundNum, active, rec);
-		if (roundNum === 2) {
-			/* gom nhóm theo record, ghép liền kề seed-asc tránh tái đấu */
-			const byRec = {};
-			participants.forEach(function (name) {
-				const key = rec[name].w + "-" + rec[name].l;
-				(byRec[key] = byRec[key] || []).push(name);
-			});
-			const pairs = [], bye = [];
-			Object.keys(byRec).sort(function (a, b) {
-				const ra = a.split("-").map(Number), rb = b.split("-").map(Number);
-				return (rb[0] - ra[0]) || (ra[1] - rb[1]);
-			}).forEach(function (key) {
-				const res = pairAdjacent(byRec[key], participants, matches);
-				res.pairs.forEach(function (p) { pairs.push(p); });
-				res.bye.forEach(function (b) { bye.push(b); });
-			});
-			return { pairs: pairs, bye: bye };
-		}
-		/* R3+: chỉ ghép nhóm 1 thua (0 thua chờ); sort Thắng desc → Thua asc → seed asc; nhóm lẻ → đội cuối bye */
-		const oneLoss = participants.filter(function (t) { return rec[t].l === 1; });
-		if (!oneLoss.length) return { pairs: [], bye: [] };
-		const res = pairAdjacent(oneLoss, participants, matches, function (a, b) {
-			return (rec[b].w - rec[a].w) ||
-				(rec[a].l - rec[b].l) ||
-				(seedIndex(participants, a) - seedIndex(participants, b));
-		});
-		return { pairs: res.pairs, bye: res.bye };
-	}
-
-	/* Xếp hạng + loại + phase */
-	function customComputeState(participants, matches) {
-		const rec = buildRecords(participants, matches);
-		const rows = participants.map(function (name) {
-			return { name: name, rec: rec[name] };
-		});
-		const ranked = rows.slice().sort(standingsSort(participants)).map(function (x) { return x.name; });
-		const active = participants.filter(function (t) { return rec[t].l < 2; });
-		const phase = active.length <= 1 ? "complete" : (active.length <= 3 ? "round-robin" : "elimination");
-		return {
-			records: rec,
-			ranking: ranked.slice(0, 3),
-			eliminated: ranked.slice(3).sort(function (a, b) {
-				return (rec[a].w - rec[b].w) ||
-					(rec[b].l - rec[a].l) ||
-					(seedIndex(participants, a) - seedIndex(participants, b));
-			}),
-			phase: phase
-		};
-	}
-
-	/* Bracket thuần: gom matches theo stage; thêm cột trống nếu chưa complete */
-	function customBuildBracket(participants, matches) {
-		const byStage = {};
-		matches.forEach(function (m) {
-			if (!byStage[m.stage]) byStage[m.stage] = [];
-			byStage[m.stage].push(m);
-		});
-		const rounds = Object.keys(byStage).map(function (stage) {
+	/* Bracket cố định: 14 vị trí, mỗi vị trí = { pos, round, feeds, teams:[t1,t2], match } */
+	function buildFixedBracket(participants, matches) {
+		const byPos = {};
+		matches.forEach(function (m) { byPos[derivePos(matches, m)] = m; });
+		return STRUCTURE.map(function (slot) {
 			return {
-				round: roundOf(stage),
-				groups: [{ label: stage, matches: byStage[stage] }],
-				bye: []
+				pos: slot.pos,
+				round: slot.round,
+				feeds: slot.feeds,
+				teams: slot.feeds.map(function (f) { return resolveFeed(f, participants, byPos); }),
+				match: byPos[slot.pos] || null
 			};
-		}).sort(function (a, b) { return a.round - b.round; });
-		const state = customComputeState(participants, matches);
-		if (state.phase !== "complete") {
-			const next = rounds.length ? rounds[rounds.length - 1].round + 1 : 1;
-			rounds.push({ round: next, groups: [{ label: "Vòng " + next, matches: [] }], bye: [] });
+		});
+	}
+
+	/* State: records, phase, eliminated, ranking, bracket */
+	function computeFixedState(participants, matches) {
+		const bracket = buildFixedBracket(participants, matches);
+		const byPos = {};
+		bracket.forEach(function (b) { byPos[b.pos] = b; });
+		const records = buildRecords(participants, matches);
+
+		const gf = byPos["R7.1"];
+		const gfWinner = gf && gf.match ? matchWinner(gf.match) : null;
+		const phase = gfWinner ? "complete" : "in-progress";
+
+		/* Loại: thua R2 nhánh thua (0-2), thua R3 (1-2), thua R4 (1-2) */
+		const eliminated = [];
+		["R2.3", "R2.4", "R3.1", "R3.2", "R4.1"].forEach(function (pos) {
+			const b = byPos[pos];
+			if (b && b.match) {
+				const w = matchWinner(b.match);
+				if (w) eliminated.push(w === b.match.p1 ? b.match.p2 : b.match.p1);
+			}
+		});
+
+		let ranking;
+		if (phase === "complete") {
+			ranking = [gfWinner];
+			const l7 = gfWinner === gf.match.p1 ? gf.match.p2 : gf.match.p1;
+			ranking.push(l7);
+			const b5 = byPos["R5.1"];
+			if (b5 && b5.match) {
+				const w5 = matchWinner(b5.match);
+				if (w5) ranking.push(w5 === b5.match.p1 ? b5.match.p2 : b5.match.p1);
+			}
+			const rest = participants.filter(function (t) { return ranking.indexOf(t) === -1; });
+			rest.sort(function (a, b) {
+				return (records[b].w - records[a].w) ||
+					((records[b].sf - records[b].sa) - (records[a].sf - records[a].sa)) ||
+					((records[b].pf - records[b].pa) - (records[a].pf - records[a].pa)) ||
+					(seedIndex(participants, a) - seedIndex(participants, b));
+			});
+			ranking = ranking.concat(rest);
+		} else {
+			ranking = participants.map(function (name) { return { name: name, rec: records[name] }; })
+				.slice().sort(standingsSort(participants)).map(function (x) { return x.name; });
 		}
-		return { rounds: rounds, state: state };
+
+		return { records: records, phase: phase, eliminated: eliminated, ranking: ranking, bracket: bracket };
 	}
 
 	return {
 		countSets: countSets,
 		matchWinner: matchWinner,
-		customCreateRound1: customCreateRound1,
-		customPairNextRound: customPairNextRound,
-		customComputeState: customComputeState,
-		customBuildBracket: customBuildBracket
+		buildFixedBracket: buildFixedBracket,
+		computeFixedState: computeFixedState
 	};
 });

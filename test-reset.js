@@ -150,69 +150,48 @@ assert.strictEqual(seedD.unassignedPairs.length, 1);
 console.log("✅ applySeedToContent: (a) seed đầy đủ, (b) seed thiếu unassignedPairs, (c) không seed, (d) copy mảng — PASS");
 
 /* ============================================================
-   2. Podium gating — smoke kết hợp renderCustomBracket (DOM stub)
-      CustomStage + app.js được load nên test đúng hàm thật trong app.js
+   2. Fixed bracket smoke — engine-level (computeFixedState)
+      DOM assertions của renderCustomBracket mới sẽ được bổ sung ở Task 2
+      (renderCustomBracket chưa redesign ở Task 1).
    ============================================================ */
 const teams8 = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8"];
 
-/* 2a. 0 matches → phase "elimination" → podium "Tạm xếp hạng" (không ranking giả) */
-let st = CustomStage.customComputeState(teams8, []);
-assert.strictEqual(st.phase, "elimination");
-let tree = renderCustomBracket({ format: "swiss", participants: teams8, matches: [] });
-let txt = allText(tree);
-assert.ok(txt.indexOf("Tạm xếp hạng — còn vòng đấu") !== -1, "0 matches → podium phải hiện 'Tạm xếp hạng'");
-assert.ok(txt.indexOf("🥇") === -1, "0 matches → KHÔNG được hiện medal giả");
-assert.ok(txt.indexOf("T1") === -1, "0 matches → KHÔNG được hiện ranking giả (T1)");
+/* 2a. 0 matches → phase "in-progress", chưa loại ai */
+let st = CustomStage.computeFixedState(teams8, []);
+assert.strictEqual(st.phase, "in-progress");
+assert.deepStrictEqual(hostClone(st.eliminated), []); /* QUAN TRỌNG: hostClone — array tạo trong vm không cùng realm host */
 
-/* 2b. 4 matches Vòng 1, chưa có winner → phase "elimination" → tương tự */
+/* 2b. 4 matches Vòng 1 chưa winner → phase in-progress, chưa loại ai */
 const r1 = [
-	{ stage: "Vòng 1", p1: "T1", p2: "T2" },
-	{ stage: "Vòng 1", p1: "T3", p2: "T4" },
-	{ stage: "Vòng 1", p1: "T5", p2: "T6" },
-	{ stage: "Vòng 1", p1: "T7", p2: "T8" }
+	{ stage: "Vòng 1", pos: "R1.1", p1: "T1", p2: "T2" },
+	{ stage: "Vòng 1", pos: "R1.2", p1: "T3", p2: "T4" },
+	{ stage: "Vòng 1", pos: "R1.3", p1: "T5", p2: "T6" },
+	{ stage: "Vòng 1", pos: "R1.4", p1: "T7", p2: "T8" }
 ];
-st = CustomStage.customComputeState(teams8, r1);
-assert.strictEqual(st.phase, "elimination");
-tree = renderCustomBracket({ format: "swiss", participants: teams8, matches: r1 });
-txt = allText(tree);
-assert.ok(txt.indexOf("Tạm xếp hạng — còn vòng đấu") !== -1, "Vòng 1 chưa có kết quả → podium 'Tạm xếp hạng'");
-assert.ok(txt.indexOf("🥇") === -1, "Vòng 1 chưa có kết quả → KHÔNG được hiện medal giả");
-const rankCardTxt = allText(ctx.renderCustomRanking(st));
-["1.", "2.", "3.", "T1", "T2", "T3"].forEach(function (s) {
-	assert.ok(rankCardTxt.indexOf(s) !== -1, "bảng xếp hạng chưa complete phải chứa " + s);
-});
-assert.ok(rankCardTxt.indexOf("🥇") === -1, "bảng xếp hạng chưa complete → số thứ tự 'N.', không medal");
+st = CustomStage.computeFixedState(teams8, r1);
+assert.strictEqual(st.phase, "in-progress");
+assert.deepStrictEqual(hostClone(st.eliminated), []);
 
-/* 2c. full trace aaa.md → phase "complete" → podium hiện T1/T3/T5 (medal) */
-const m = [];
-function play(pairs, winners) {
-	const round = m.reduce(function (max, x) { return Math.max(max, parseInt(String(x.stage).replace(/\D/g, ""), 10)); }, 0) + 1;
-	pairs.forEach(function (p, i) {
-		m.push({ stage: "Vòng " + round, p1: p[0], p2: p[1], sets: [[21, 15], [21, 18]], winner: winners[i] });
-	});
-}
-let r = CustomStage.customCreateRound1(teams8);
-play(r.pairs, ["T1", "T3", "T5", "T7"]); /* R1 */
-r = CustomStage.customPairNextRound(teams8, m, 2);
-play(r.pairs, ["T1", "T5", "T2", "T6"]); /* R2 */
-r = CustomStage.customPairNextRound(teams8, m, 3);
-play(r.pairs, ["T3", "T7"]); /* R3 */
-r = CustomStage.customPairNextRound(teams8, m, 4);
-play(r.pairs, ["T3"]); /* R4 */
-r = CustomStage.customPairNextRound(teams8, m, 5);
-play(r.pairs, ["T1"]); /* R5 */
-r = CustomStage.customPairNextRound(teams8, m, 6);
-play(r.pairs, ["T1", "T3"]); /* R6 */
-st = CustomStage.customComputeState(teams8, m);
+/* 2c. full trace cố định (khớp aaa.md) → phase complete → ranking T1/T3/T5 */
+const full = [
+	{ stage: "Vòng 1", pos: "R1.1", p1: "T1", p2: "T2", sets: [[21, 15], [21, 18]], winner: "T1" },
+	{ stage: "Vòng 1", pos: "R1.2", p1: "T3", p2: "T4", sets: [[21, 15], [21, 18]], winner: "T3" },
+	{ stage: "Vòng 1", pos: "R1.3", p1: "T5", p2: "T6", sets: [[21, 15], [21, 18]], winner: "T5" },
+	{ stage: "Vòng 1", pos: "R1.4", p1: "T7", p2: "T8", sets: [[21, 15], [21, 18]], winner: "T7" },
+	{ stage: "Vòng 2", pos: "R2.1", p1: "T1", p2: "T3", sets: [[21, 15], [21, 18]], winner: "T1" },
+	{ stage: "Vòng 2", pos: "R2.2", p1: "T5", p2: "T7", sets: [[21, 15], [21, 18]], winner: "T5" },
+	{ stage: "Vòng 2", pos: "R2.3", p1: "T2", p2: "T4", sets: [[21, 15], [21, 18]], winner: "T2" },
+	{ stage: "Vòng 2", pos: "R2.4", p1: "T6", p2: "T8", sets: [[21, 15], [21, 18]], winner: "T6" },
+	{ stage: "Vòng 3", pos: "R3.1", p1: "T3", p2: "T2", sets: [[21, 15], [21, 18]], winner: "T3" },
+	{ stage: "Vòng 3", pos: "R3.2", p1: "T7", p2: "T6", sets: [[21, 15], [21, 18]], winner: "T7" },
+	{ stage: "Vòng 4", pos: "R4.1", p1: "T3", p2: "T7", sets: [[21, 15], [21, 18]], winner: "T3" },
+	{ stage: "Vòng 6", pos: "R6.1", p1: "T1", p2: "T5", sets: [[21, 15], [21, 18]], winner: "T1" },
+	{ stage: "Vòng 5", pos: "R5.1", p1: "T3", p2: "T5", sets: [[21, 15], [21, 18]], winner: "T3" },
+	{ stage: "Vòng 7", pos: "R7.1", p1: "T1", p2: "T3", sets: [[21, 15], [21, 18]], winner: "T1" }
+];
+st = CustomStage.computeFixedState(teams8, full);
 assert.strictEqual(st.phase, "complete");
-assert.deepStrictEqual(st.ranking, ["T1", "T3", "T5"]);
-tree = renderCustomBracket({ format: "swiss", participants: teams8, matches: m });
-txt = allText(tree);
-["🥇", "🥈", "🥉", "T1", "T3", "T5"].forEach(function (s) {
-	assert.ok(txt.indexOf(s) !== -1, "complete → podium phải chứa " + s);
-});
-assert.ok(txt.indexOf("Đã loại") !== -1, "complete → podium phải hiện danh sách đã loại");
-assert.ok(txt.indexOf("Tạm xếp hạng") === -1, "complete → KHÔNG còn 'Tạm xếp hạng'");
+assert.deepStrictEqual(hostClone(st.ranking.slice(0, 3)), ["T1", "T3", "T5"]); /* hostClone — vm realm */
 
-console.log("✅ Podium gating: (a) 0 matches, (b) Vòng 1 chưa kết quả, (c) full trace complete (T1/T3/T5) — PASS");
-console.log("✅ Tất cả test reset + smoke podium đều PASS");
+console.log("✅ Fixed bracket smoke (engine): (a) 0 matches, (b) Vòng 1 chưa kết quả, (c) full trace complete (T1/T3/T5) — PASS");
+console.log("✅ Tất cả test reset + smoke bracket đều PASS");
