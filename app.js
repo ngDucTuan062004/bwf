@@ -1038,6 +1038,8 @@ function assignSeed(content, seedNum, team) {
 	if (idx !== -1) participants.splice(idx, 1);
 	participants.splice(seedNum - 1, 0, team);
 	content.participants = participants;
+	if (!content.seedFilled) content.seedFilled = [];
+	content.seedFilled[seedNum - 1] = true;
 	saveData();
 	renderAll();
 	ensureR1(content);
@@ -1045,8 +1047,9 @@ function assignSeed(content, seedNum, team) {
 
 function ensureR1(content) {
 	const participants = content.participants || [];
+	const seedFilled = content.seedFilled || [];
 	const hasR1 = (content.matches || []).some(function (m) { return m.pos && m.pos.indexOf("R1.") === 0; });
-	if (participants.length === 8 && !hasR1) {
+	if (participants.length === 8 && seedFilled.length === 8 && seedFilled.every(Boolean) && !hasR1) {
 		[["R1.1", 0, 1], ["R1.2", 2, 3], ["R1.3", 4, 5], ["R1.4", 6, 7]].forEach(function (row) {
 			content.matches.push({ stage: "Vòng 1", pos: row[0], p1: participants[row[1]], p2: participants[row[2]], date: "", time: "", court: "", referee: "", sets: null });
 		});

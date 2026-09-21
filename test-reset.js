@@ -228,12 +228,17 @@ console.log("✅ Fixed bracket smoke: (a) 0 matches, (b) Vòng 1 chưa kết qu�
 /* renderAll phụ thuộc DOM thật (data null) → stub để test data logic */
 ctx.renderAll = function () {};
 
-/* 3a. ensureR1: đủ 8 đội + chưa có R1 → tạo 4 trận R1 đúng seed order */
-const c1 = { participants: teams8.slice(), matches: [] };
+/* 3a. ensureR1: đủ 8 đội + đủ 8 seed filled + chưa có R1 → tạo 4 trận R1 đúng seed order */
+const c1 = { participants: teams8.slice(), matches: [], seedFilled: [true, true, true, true, true, true, true, true] };
 ctx.ensureR1(c1);
 assert.strictEqual(c1.matches.length, 4, "ensureR1 tạo đúng 4 trận R1");
 assert.deepStrictEqual(hostClone(c1.matches.map(function (m) { return m.pos; })), ["R1.1", "R1.2", "R1.3", "R1.4"]);
 assert.deepStrictEqual(hostClone(c1.matches.map(function (m) { return m.p1 + "-" + m.p2; })), ["T1-T2", "T3-T4", "T5-T6", "T7-T8"]);
+
+/* 3a2. ensureR1: đủ 8 đội nhưng chưa đủ 8 seed filled → không tạo R1 */
+const c1b = { participants: teams8.slice(), matches: [], seedFilled: [true] };
+ctx.ensureR1(c1b);
+assert.strictEqual(c1b.matches.length, 0, "ensureR1 không tạo khi chưa đủ 8 seed filled");
 
 /* 3b. ensureR1: đã có R1 → không tạo thêm */
 const c2 = { participants: teams8.slice(), matches: [{ stage: "Vòng 1", pos: "R1.1", p1: "T1", p2: "T2" }] };
@@ -284,13 +289,19 @@ ctx.syncFixedBracket(c5);
 const r21 = c5.matches.find(function (m) { return m.pos === "R2.1"; });
 assert.strictEqual(r21.p2, "T3", "syncFixedBracket cập nhật p2 theo kết quả R1");
 
-/* 3g. assignSeed: đổi seed order + gọi ensureR1 */
+/* 3g. assignSeed: đổi seed order; R1 CHỈ sinh khi đủ 8 seed filled */
 const c6 = { participants: teams8.slice(), matches: [] };
 ctx.assignSeed(c6, 1, "T5");
 assert.strictEqual(c6.participants[0], "T5", "assignSeed đặt T5 vào seed 1");
 assert.strictEqual(c6.participants.length, 8, "assignSeed giữ đủ 8 đội");
 assert.strictEqual(c6.participants.indexOf("T5"), 0, "T5 không còn ở vị trí cũ");
-assert.strictEqual(c6.matches.length, 4, "assignSeed gọi ensureR1 → tạo R1");
+assert.strictEqual(c6.matches.length, 0, "kéo 1 đội → CHƯA tạo R1");
+/* kéo đủ 8 đội → R1 sinh */
+const c7 = { participants: teams8.slice(), matches: [] };
+teams8.forEach(function (t, i) { ctx.assignSeed(c7, i + 1, t); });
+assert.strictEqual(c7.matches.length, 4, "đủ 8 seed → tạo đúng 4 trận R1");
+assert.strictEqual(c7.matches[0].pos, "R1.1");
+assert.strictEqual(c7.matches[3].pos, "R1.4");
 
 /* 3h. buildFixedMatchNode seedMode: R1 trống → 2 seed-slot có data-seed */
 const bEmpty = CustomStage.buildFixedBracket([], []).find(function (b) { return b.pos === "R1.1"; });
