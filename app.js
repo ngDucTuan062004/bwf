@@ -590,9 +590,9 @@ function renderStandingsSection(content) {
 
 		if (isCustomStage(content)) {
 			/* Nhóm 8 đội: xếp hạng tùy chỉnh thay bảng standings + nhánh; không dùng pair order */
-			const state = CustomStage.customComputeState(content.participants || [], swissMatches);
+			const state = CustomStage.computeFixedState(content.participants || [], swissMatches);
 			if (!hasMatches) {
-				card.appendChild(el("p", { class: "standings-note" }, "Chưa có trận nào — bấm ⚡ để sinh Vòng 1"));
+				card.appendChild(el("p", { class: "standings-note" }, "Chưa có trận nào — kéo 8 đội vào ô seed ở sơ đồ bên dưới để bắt đầu"));
 			} else {
 				card.appendChild(renderCustomRanking(state));
 			}
@@ -625,23 +625,25 @@ function renderStandingsSection(content) {
 			card.appendChild(addRow);
 		}
 		if (editMode) {
-			card.appendChild(el("div", { class: "group-actions" }, [
-				el("button", {
+			const actions = [];
+			if (!isCustomStage(content)) {
+				actions.push(el("button", {
 					class: "btn small outline", type: "button", onclick: function () {
-						if (!isCustomStage(content) && !hasMatches && content.unassignedPairs && content.unassignedPairs.length) {
+						if (!hasMatches && content.unassignedPairs && content.unassignedPairs.length) {
 							alert("Còn " + content.unassignedPairs.length + " cặp chưa xếp vào ô số — kéo vào bảng trước khi sinh lịch.");
 							return;
 						}
 						generateNextSwissRound(content);
 					}
-				}, "⚡ Tự sinh vòng tiếp theo"),
-				el("button", {
-					class: "btn small outline danger-text", type: "button", onclick: function () {
-						if (!confirm("Reset nội dung này về trạng thái ban đầu? Mọi trận đã nhập sẽ bị xóa.")) return;
-						resetContentToSeed(content);
-					}
-				}, "↺ Reset"),
-			]));
+				}, "⚡ Tự sinh vòng tiếp theo"));
+			}
+			actions.push(el("button", {
+				class: "btn small outline danger-text", type: "button", onclick: function () {
+					if (!confirm("Reset nội dung này về trạng thái ban đầu? Mọi trận đã nhập sẽ bị xóa.")) return;
+					resetContentToSeed(content);
+				}
+			}, "↺ Reset"));
+			card.appendChild(el("div", { class: "group-actions" }, actions));
 		}
 		wrap.appendChild(card);
 		outer.appendChild(isCustomStage(content) ? renderCustomBracket(content) : renderSwissBracket(content));
@@ -884,41 +886,8 @@ function buildBracketMatchNode(content, m, swissMatches) {
 }
 
 /* ================================================================
-   CUSTOM STAGE — 8 đội: match card, bracket podium & xếp hạng
+   CUSTOM STAGE — 8 đội: xếp hạng & bracket flowchart 7 cột
    ================================================================ */
-function buildCustomMatchNode(content, m, records) {
-	const winner = CustomStage.matchWinner(m);
-	const hasScore = !!(m.sets && m.sets.length);
-	const hasResult = hasScore || !!m.winner;
-	const rec1 = (records && records[m.p1]) || { w: 0, l: 0 };
-	const rec2 = (records && records[m.p2]) || { w: 0, l: 0 };
-	const cs = hasScore ? CustomStage.countSets(m.sets) : null;
-	const scoreText = hasScore
-		? m.sets.map(function (p) { return p[0] + "–" + p[1]; }).join(", ") + " · " + cs.s1 + "–" + cs.s2
-		: (m.winner ? "chọn nhanh" : "—");
-	const idx1 = (content.participants || []).indexOf(m.p1);
-	const idx2 = (content.participants || []).indexOf(m.p2);
-	const name1 = (idx1 >= 0 ? (idx1 + 1) + ". " : "") + m.p1;
-	const name2 = (idx2 >= 0 ? (idx2 + 1) + ". " : "") + m.p2;
-	const node = el("div", { class: "swiss-match", "data-team": m.p1, "data-round": m.stage });
-	const side1 = el("div", { class: "swiss-side" + (winner === m.p1 ? " winner" : (winner ? " loser" : "")), "data-team-side": m.p1 }, [
-		el("button", { class: "swiss-side-name link-name", type: "button", text: name1, onclick: function () { showTeamHistory(content, m.p1); } }),
-		el("span", { class: "swiss-record", text: rec1.w + "-" + rec1.l }),
-	]);
-	if (winner === m.p1) side1.appendChild(el("span", { class: "swiss-win-badge", text: "WINNER" }));
-	else if (winner) side1.appendChild(el("span", { class: "swiss-loss-badge", text: "LOSER" }));
-	node.appendChild(side1);
-	const side2 = el("div", { class: "swiss-side" + (winner === m.p2 ? " winner" : (winner ? " loser" : "")), "data-team-side": m.p2 }, [
-		el("button", { class: "swiss-side-name link-name", type: "button", text: name2, onclick: function () { showTeamHistory(content, m.p2); } }),
-		el("span", { class: "swiss-record", text: rec2.w + "-" + rec2.l }),
-	]);
-	if (winner === m.p2) side2.appendChild(el("span", { class: "swiss-win-badge", text: "WINNER" }));
-	else if (winner) side2.appendChild(el("span", { class: "swiss-loss-badge", text: "LOSER" }));
-	node.appendChild(side2);
-	node.appendChild(el("div", { class: "swiss-score", text: scoreText + " · " + (hasResult ? "Đã đấu" : "Chưa đấu") }));
-	return node;
-}
-
 function customRankRow(state, name, i, isFinal) {
 	const rec = (state.records && state.records[name]) || { w: 0, l: 0 };
 	const medals = ["🥇", "🥈", "🥉"];
@@ -941,37 +910,265 @@ function renderCustomRanking(state) {
 	return wrap;
 }
 
+function renderBracketLegend() {
+	return el("div", { class: "bracket-legend" }, [
+		el("span", { text: "🟢 Thắng đi tiếp" }),
+		el("span", { text: "🔴 Thua xuống nhánh dưới" }),
+		el("span", { text: "⚪ Thua bị loại" }),
+		el("span", { text: "🥇 Chung kết" }),
+	]);
+}
+
 function renderCustomBracket(content) {
-	const section = el("div", { class: "swiss-bracket-card" });
-	section.appendChild(el("h3", { class: "swiss-bracket-title", text: "Sơ đồ thi đấu — nhóm 8 đội" }));
+	const section = el("div", { class: "swiss-bracket-card fixed-bracket" });
+	section.appendChild(el("h3", { class: "swiss-bracket-title", text: "Sơ đồ thi đấu — nhóm 8 đội (14 trận cố định)" }));
+	section.appendChild(renderBracketLegend());
 
 	const participants = content.participants || [];
 	const customMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
 	const state = CustomStage.computeFixedState(participants, customMatches);
+	const hasR1 = customMatches.some(function (m) { return m.pos && m.pos.indexOf("R1.") === 0; });
+	const seedMode = editMode && !hasR1;
 
-	const track = el("div", { class: "swiss-bracket-track", "data-bracket-track": "1" });
+	if (seedMode) {
+		section.appendChild(renderSeedPool(content, participants));
+	}
+
+	const track = el("div", { class: "swiss-bracket-track fixed-track", "data-bracket-track": "1" });
 	const headers = { 1: "Vòng 1 — Seed", 2: "Vòng 2", 3: "Vòng 3", 4: "Vòng 4", 5: "Tranh Hạng 3", 6: "Vòng 6", 7: "Chung kết" };
 	[1, 2, 3, 4, 5, 6, 7].forEach(function (r) {
-		const col = el("div", { class: "swiss-round" });
+		const col = el("div", { class: "swiss-round fixed-round r" + r });
 		col.appendChild(el("h4", { class: "swiss-round-head", text: headers[r] }));
-		let played = 0;
-		state.bracket.filter(function (b) { return b.round === r; }).forEach(function (b) {
-			if (b.teams[0] && b.teams[1]) {
-				const m = b.match || { stage: "Vòng " + r, pos: b.pos, p1: b.teams[0], p2: b.teams[1] };
-				col.appendChild(buildCustomMatchNode(content, m, state.records));
-				played++;
-			}
-		});
-		if (!played) col.appendChild(el("div", { class: "swiss-empty-slot", text: "Chưa ghép cặp" }));
-		if (r === 7 && state.phase === "complete") {
-			col.appendChild(el("div", { class: "swiss-empty-slot", text: "🏆 Hạng 1 · 🥈 Hạng 2" }));
-			col.appendChild(renderCustomRanking(state));
+
+		if (r === 2) {
+			col.appendChild(el("div", { class: "fixed-branch-label win", text: "Nhánh Thắng" }));
+			state.bracket.filter(function (b) { return b.pos === "R2.1" || b.pos === "R2.2"; }).forEach(function (b) {
+				col.appendChild(buildFixedMatchNode(content, b, state.records, seedMode));
+			});
+			col.appendChild(el("div", { class: "fixed-branch-label loss", text: "Nhánh Thua" }));
+			state.bracket.filter(function (b) { return b.pos === "R2.3" || b.pos === "R2.4"; }).forEach(function (b) {
+				col.appendChild(buildFixedMatchNode(content, b, state.records, seedMode));
+			});
+			col.appendChild(el("div", { class: "fixed-callout danger", text: "Hạng 7-8" }));
+		} else {
+			state.bracket.filter(function (b) { return b.round === r; }).forEach(function (b) {
+				col.appendChild(buildFixedMatchNode(content, b, state.records, seedMode));
+			});
+			if (r === 3) col.appendChild(el("div", { class: "fixed-callout danger", text: "Hạng 5-6" }));
+			if (r === 4) col.appendChild(el("div", { class: "fixed-callout danger", text: "Hạng 4" }));
+			if (r === 5 && state.phase === "complete") col.appendChild(el("div", { class: "fixed-callout gold", text: "🥉 Hạng 3" }));
+			if (r === 7 && state.phase === "complete") col.appendChild(el("div", { class: "fixed-callout gold", text: "🏆 Hạng 1 · 🥈 Hạng 2" }));
 		}
 		track.appendChild(col);
 	});
 
 	section.appendChild(track);
+	requestAnimationFrame(function () {
+		drawFixedConnectors(track, state.bracket);
+	});
 	return section;
+}
+
+function buildFixedMatchNode(content, b, records, seedMode) {
+	const node = el("div", { class: "swiss-match fixed-match", "data-pos": b.pos, "data-round": b.round });
+	node.appendChild(el("span", { class: "fixed-bo3", text: "BO3" }));
+
+	const isSeedRound = seedMode && b.round === 1;
+
+	b.feeds.forEach(function (feed, i) {
+		const team = b.teams[i];
+		if (isSeedRound) {
+			const seedNum = feed[1];
+			const slot = el("div", { class: "seed-slot" + (team ? " filled" : ""), "data-seed": seedNum });
+			slot.appendChild(el("span", { class: "seed-slot-name", text: team ? team : "Seed " + seedNum }));
+			slot.addEventListener("dragover", function (e) { e.preventDefault(); slot.classList.add("dropzone-active"); });
+			slot.addEventListener("dragleave", function () { slot.classList.remove("dropzone-active"); });
+			slot.addEventListener("drop", function (e) {
+				e.preventDefault();
+				slot.classList.remove("dropzone-active");
+				const name = dragPlayerName || e.dataTransfer.getData("text/plain");
+				dragPlayerName = null;
+				if (name) assignSeed(content, seedNum, name);
+			});
+			node.appendChild(slot);
+		} else {
+			const winner = b.match ? CustomStage.matchWinner(b.match) : null;
+			const rec = (records && team && records[team]) || { w: 0, l: 0 };
+			const side = el("div", { class: "swiss-side" + (winner === team ? " winner" : (winner ? " loser" : "")), "data-team-side": team || "" });
+			if (team) {
+				side.appendChild(el("button", { class: "swiss-side-name link-name", type: "button", text: team, onclick: function () { showTeamHistory(content, team); } }));
+				side.appendChild(el("span", { class: "swiss-record", text: rec.w + "-" + rec.l }));
+			} else {
+				side.appendChild(el("span", { class: "swiss-side-name seed-placeholder", text: b.round === 1 ? "Seed " + feed[1] : "Chờ kết quả" }));
+			}
+			node.appendChild(side);
+		}
+	});
+
+	if (editMode && b.match && b.match.p1 && b.match.p2) {
+		node.classList.add("clickable");
+		node.addEventListener("click", function (e) {
+			if (e.target.closest("button")) return;
+			openFixedResultModal(content, b);
+		});
+	}
+
+	return node;
+}
+
+function renderSeedPool(content, participants) {
+	const wrap = el("div", { class: "seed-pool" });
+	wrap.appendChild(el("p", { class: "pool-hint" }, "Kéo 8 đội vào ô seed (1-8) để xếp hạt giống — R1 tự sinh khi đủ 8."));
+	participants.forEach(function (name) {
+		const chip = el("span", { class: "seed-chip", "data-team": name, text: name });
+		chip.setAttribute("draggable", "true");
+		chip.addEventListener("dragstart", function (e) {
+			dragPlayerName = name;
+			e.dataTransfer.setData("text/plain", name);
+			e.dataTransfer.effectAllowed = "move";
+		});
+		wrap.appendChild(chip);
+	});
+	return wrap;
+}
+
+function assignSeed(content, seedNum, team) {
+	const participants = (content.participants || []).slice();
+	const idx = participants.indexOf(team);
+	if (idx !== -1) participants.splice(idx, 1);
+	participants.splice(seedNum - 1, 0, team);
+	content.participants = participants;
+	saveData();
+	renderAll();
+	ensureR1(content);
+}
+
+function ensureR1(content) {
+	const participants = content.participants || [];
+	const hasR1 = (content.matches || []).some(function (m) { return m.pos && m.pos.indexOf("R1.") === 0; });
+	if (participants.length === 8 && !hasR1) {
+		[["R1.1", 0, 1], ["R1.2", 2, 3], ["R1.3", 4, 5], ["R1.4", 6, 7]].forEach(function (row) {
+			content.matches.push({ stage: "Vòng 1", pos: row[0], p1: participants[row[1]], p2: participants[row[2]], date: "", time: "", court: "", referee: "", sets: null });
+		});
+		saveData();
+		renderAll();
+	}
+}
+
+function syncFixedBracket(content) {
+	const participants = content.participants || [];
+	const customMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
+	const bracket = CustomStage.buildFixedBracket(participants, customMatches);
+	let changed = false;
+	bracket.forEach(function (b) {
+		if (b.round === 1) return; /* R1 do seed tạo */
+		if (!b.match && b.teams[0] && b.teams[1]) {
+			content.matches.push({ stage: "Vòng " + b.round, pos: b.pos, p1: b.teams[0], p2: b.teams[1], date: "", time: "", court: "", referee: "", sets: null });
+			changed = true;
+		} else if (b.match && b.teams[0] && b.teams[1] && (b.match.p1 !== b.teams[0] || b.match.p2 !== b.teams[1])) {
+			b.match.p1 = b.teams[0]; b.match.p2 = b.teams[1]; changed = true;
+		}
+	});
+	if (changed) { saveData(); renderAll(); }
+}
+
+function openFixedResultModal(content, b) {
+	const m = b.match;
+	if (!m || !m.p1 || !m.p2) return;
+	const overlay = el("div", { class: "modal-backdrop" });
+	const card = el("div", { class: "modal-card" });
+	card.appendChild(el("div", { class: "modal-card-head" }, [
+		el("h3", { text: b.pos + " — Vòng " + b.round + " (BO3)" }),
+		el("button", { class: "modal-close", type: "button", text: "✕", onclick: function () { overlay.remove(); } }),
+	]));
+	card.appendChild(el("div", { class: "modal-card-teams" }, [
+		el("span", { class: "fixed-modal-team", text: m.p1 }),
+		el("span", { class: "fixed-modal-vs", text: "vs" }),
+		el("span", { class: "fixed-modal-team", text: m.p2 }),
+	]));
+
+	const rows = setsToRows(m.sets);
+	const inputsA = [], inputsB = [];
+	const setsWrap = el("div", { class: "fixed-modal-sets" });
+	for (let i = 0; i < 3; i++) {
+		const ia = el("input", { type: "number", value: rows[i][0] });
+		const ib = el("input", { type: "number", value: rows[i][1] });
+		inputsA.push(ia); inputsB.push(ib);
+		setsWrap.appendChild(el("div", { class: "set-edit-group" }, [
+			el("span", { text: "Séc " + (i + 1) }), ia, el("span", { text: "–" }), ib,
+		]));
+	}
+	function commitScore() {
+		m.sets = readSetsFromInputs(inputsA, inputsB);
+		if (m.sets) m.winner = null;
+		saveData();
+		syncFixedBracket(content);
+		overlay.remove();
+		renderAll();
+	}
+	inputsA.concat(inputsB).forEach(function (inp) { inp.addEventListener("change", commitScore); });
+	card.appendChild(setsWrap);
+
+	const quickRow = el("div", { class: "edit-row quick-win-row" }, [
+		el("span", { class: "quick-win-label", text: "Chọn đội thắng nhanh:" }),
+		el("button", { class: "btn small", type: "button", onclick: function () { m.winner = m.p1; m.sets = null; saveData(); syncFixedBracket(content); overlay.remove(); renderAll(); } }, "🏆 " + m.p1),
+		el("button", { class: "btn small", type: "button", onclick: function () { m.winner = m.p2; m.sets = null; saveData(); syncFixedBracket(content); overlay.remove(); renderAll(); } }, "🏆 " + m.p2),
+		el("button", { class: "btn small outline", type: "button", onclick: function () { m.winner = null; m.sets = null; saveData(); syncFixedBracket(content); overlay.remove(); renderAll(); } }, "Xoá kết quả"),
+	]);
+	card.appendChild(quickRow);
+
+	overlay.appendChild(card);
+	overlay.addEventListener("click", function (e) { if (e.target === overlay) overlay.remove(); });
+	document.body.appendChild(overlay);
+}
+
+function drawFixedConnectors(track, bracket) {
+	const svg = track.querySelector("svg.swiss-connectors");
+	if (svg) svg.remove();
+	const trackRect = track.getBoundingClientRect();
+	const svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+	svgEl.setAttribute("class", "swiss-connectors");
+	svgEl.setAttribute("width", track.scrollWidth);
+	svgEl.setAttribute("height", track.scrollHeight);
+	svgEl.style.position = "absolute";
+	svgEl.style.top = "0";
+	svgEl.style.left = "0";
+	svgEl.style.pointerEvents = "none";
+
+	const byPos = {};
+	bracket.forEach(function (b) { byPos[b.pos] = b; });
+
+	bracket.forEach(function (b) {
+		b.feeds.forEach(function (feed) {
+			if (feed[0] === "S") return; /* seed không có connector */
+			const src = byPos[feed[1]];
+			if (!src) return;
+			const srcNode = track.querySelector('[data-pos="' + cssEscape(src.pos) + '"]');
+			const dstNode = track.querySelector('[data-pos="' + cssEscape(b.pos) + '"]');
+			if (!srcNode || !dstNode) return;
+			const a = srcNode.getBoundingClientRect();
+			const d = dstNode.getBoundingClientRect();
+			const x1 = a.right - trackRect.left, y1 = (a.top + a.bottom) / 2 - trackRect.top;
+			const x2 = d.left - trackRect.left, y2 = (d.top + d.bottom) / 2 - trackRect.top;
+			const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+			path.setAttribute("d", "M " + x1 + " " + y1 + " C " + ((x1 + x2) / 2) + " " + y1 + ", " + ((x1 + x2) / 2) + " " + y2 + ", " + x2 + " " + y2);
+			path.setAttribute("fill", "none");
+			if (b.round === 7) {
+				path.setAttribute("stroke", "var(--gold)");
+				path.setAttribute("stroke-width", "3");
+			} else if (feed[0] === "W") {
+				path.setAttribute("stroke", "var(--win)");
+				path.setAttribute("stroke-width", "2");
+			} else {
+				path.setAttribute("stroke", "var(--danger)");
+				path.setAttribute("stroke-width", "2");
+				path.setAttribute("stroke-dasharray", "5 3");
+			}
+			svgEl.appendChild(path);
+		});
+	});
+
+	track.insertBefore(svgEl, track.firstChild);
 }
 
 let bracketResizeTimer = null;
@@ -1034,11 +1231,11 @@ function generateNextSwissRound(content) {
 		if (isSwissStage(m.stage) && existingRounds.indexOf(m.stage) === -1) existingRounds.push(m.stage);
 	});
 	const roundNum = existingRounds.length + 1;
-	if (roundNum > (isCustomStage(content) ? 6 : 5)) { alert(isCustomStage(content) ? "Đã đủ 6 vòng." : "Đã đủ 5 vòng Swiss."); return; }
+	if (roundNum > 5) { alert("Đã đủ 5 vòng Swiss."); return; }
 	const stage = "Vòng " + roundNum;
 
 	const swissMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
-	const res = isCustomStage(content) ? CustomStage.customPairNextRound(participants, swissMatches, roundNum) : SwissCore.pairRound(participants, swissMatches, roundNum);
+	const res = SwissCore.pairRound(participants, swissMatches, roundNum);
 	if (!res.pairs.length) { alert("Không thể sinh thêm cặp đấu mới."); return; }
 	res.pairs.forEach(function (pair) {
 		content.matches.push({ stage: stage, p1: pair[0], p2: pair[1], date: "", time: "", court: "", referee: "", sets: null });
@@ -1328,10 +1525,13 @@ window.addEventListener("resize", function () {
 		const content = data.contents.find(function (c) { return c.id === activeId; });
 		if (!content || content.format !== "swiss") return;
 		const swissMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
-		const bracket = isCustomStage(content)
-			? CustomStage.customBuildBracket(content.participants || [], swissMatches).rounds
-			: SwissCore.buildSwissBracket(content.participants || [], swissMatches, 5);
-		drawSwissConnectors(track, content.participants || [], bracket);
+		if (isCustomStage(content)) {
+			const bracket = CustomStage.computeFixedState(content.participants || [], swissMatches).bracket;
+			drawFixedConnectors(track, bracket);
+		} else {
+			const bracket = SwissCore.buildSwissBracket(content.participants || [], swissMatches, 5);
+			drawSwissConnectors(track, content.participants || [], bracket);
+		}
 	}, 150);
 });
 
