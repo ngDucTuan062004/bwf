@@ -150,16 +150,20 @@ assert.strictEqual(seedD.unassignedPairs.length, 1);
 console.log("✅ applySeedToContent: (a) seed đầy đủ, (b) seed thiếu unassignedPairs, (c) không seed, (d) copy mảng — PASS");
 
 /* ============================================================
-   2. Fixed bracket smoke — engine-level (computeFixedState)
-      DOM assertions của renderCustomBracket mới sẽ được bổ sung ở Task 2
-      (renderCustomBracket chưa redesign ở Task 1).
+   2. Fixed bracket smoke — kết hợp renderCustomBracket (DOM stub)
+      CustomStage + app.js được load nên test đúng hàm thật trong app.js
    ============================================================ */
 const teams8 = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8"];
 
-/* 2a. 0 matches → phase "in-progress", chưa loại ai */
+/* 2a. 0 matches → phase "in-progress" → bracket hiện seed, không medal */
 let st = CustomStage.computeFixedState(teams8, []);
 assert.strictEqual(st.phase, "in-progress");
-assert.deepStrictEqual(hostClone(st.eliminated), []); /* QUAN TRỌNG: hostClone — array tạo trong vm không cùng realm host */
+let tree = renderCustomBracket({ format: "swiss", participants: teams8, matches: [] });
+let txt = allText(tree);
+assert.ok(txt.indexOf("Vòng 1 — Seed") !== -1, "bracket phải có cột Vòng 1 — Seed");
+assert.ok(txt.indexOf("Chung kết") !== -1, "bracket phải có cột Chung kết");
+assert.ok(txt.indexOf("T1") !== -1 && txt.indexOf("T8") !== -1, "R1 phải hiện seed teams");
+assert.ok(txt.indexOf("🥇") === -1, "chưa complete → không medal");
 
 /* 2b. 4 matches Vòng 1 chưa winner → phase in-progress, chưa loại ai */
 const r1 = [
@@ -170,9 +174,13 @@ const r1 = [
 ];
 st = CustomStage.computeFixedState(teams8, r1);
 assert.strictEqual(st.phase, "in-progress");
-assert.deepStrictEqual(hostClone(st.eliminated), []);
+assert.deepStrictEqual(hostClone(st.eliminated), []); /* QUAN TRỌNG: hostClone — array tạo trong vm không cùng realm host */
+tree = renderCustomBracket({ format: "swiss", participants: teams8, matches: r1 });
+txt = allText(tree);
+assert.ok(txt.indexOf("T1") !== -1 && txt.indexOf("T8") !== -1, "R1 teams hiển thị");
+assert.ok(txt.indexOf("🥇") === -1, "chưa complete → không medal");
 
-/* 2c. full trace cố định (khớp aaa.md) → phase complete → ranking T1/T3/T5 */
+/* 2c. full trace cố định (khớp aaa.md) → phase complete → bracket 🏆 + ranking T1/T3/T5 */
 const full = [
 	{ stage: "Vòng 1", pos: "R1.1", p1: "T1", p2: "T2", sets: [[21, 15], [21, 18]], winner: "T1" },
 	{ stage: "Vòng 1", pos: "R1.2", p1: "T3", p2: "T4", sets: [[21, 15], [21, 18]], winner: "T3" },
@@ -192,6 +200,15 @@ const full = [
 st = CustomStage.computeFixedState(teams8, full);
 assert.strictEqual(st.phase, "complete");
 assert.deepStrictEqual(hostClone(st.ranking.slice(0, 3)), ["T1", "T3", "T5"]); /* hostClone — vm realm */
+tree = renderCustomBracket({ format: "swiss", participants: teams8, matches: full });
+txt = allText(tree);
+assert.ok(txt.indexOf("🏆") !== -1, "complete → bracket phải hiện 🏆 chung kết");
+assert.ok(txt.indexOf("T1") !== -1 && txt.indexOf("T3") !== -1, "R7 phải hiện T1 vs T3");
+const rankTxt = allText(ctx.renderCustomRanking(st));
+["🥇", "🥈", "🥉", "T1", "T3", "T5"].forEach(function (s) {
+	assert.ok(rankTxt.indexOf(s) !== -1, "complete → bảng xếp hạng phải chứa " + s);
+});
+assert.ok(rankTxt.indexOf("Đã loại") !== -1, "complete → bảng xếp hạng phải hiện danh sách đã loại");
 
-console.log("✅ Fixed bracket smoke (engine): (a) 0 matches, (b) Vòng 1 chưa kết quả, (c) full trace complete (T1/T3/T5) — PASS");
+console.log("✅ Fixed bracket smoke: (a) 0 matches, (b) Vòng 1 chưa kết quả, (c) full trace complete (T1/T3/T5) — PASS");
 console.log("✅ Tất cả test reset + smoke bracket đều PASS");

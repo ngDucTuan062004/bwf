@@ -947,38 +947,30 @@ function renderCustomBracket(content) {
 
 	const participants = content.participants || [];
 	const customMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
-	const bracket = CustomStage.customBuildBracket(participants, customMatches);
-	const state = bracket.state;
+	const state = CustomStage.computeFixedState(participants, customMatches);
 
 	const track = el("div", { class: "swiss-bracket-track", "data-bracket-track": "1" });
-	bracket.rounds.forEach(function (roundData) {
-		if (roundData.round > 6) return; /* cột 7 = podium, dựng riêng bên dưới */
+	const headers = { 1: "Vòng 1 — Seed", 2: "Vòng 2", 3: "Vòng 3", 4: "Vòng 4", 5: "Tranh Hạng 3", 6: "Vòng 6", 7: "Chung kết" };
+	[1, 2, 3, 4, 5, 6, 7].forEach(function (r) {
 		const col = el("div", { class: "swiss-round" });
-		col.appendChild(el("h4", { class: "swiss-round-head", text: "Vòng " + roundData.round }));
+		col.appendChild(el("h4", { class: "swiss-round-head", text: headers[r] }));
 		let played = 0;
-		roundData.groups.forEach(function (group) {
-			group.matches.forEach(function (m) {
+		state.bracket.filter(function (b) { return b.round === r; }).forEach(function (b) {
+			if (b.teams[0] && b.teams[1]) {
+				const m = b.match || { stage: "Vòng " + r, pos: b.pos, p1: b.teams[0], p2: b.teams[1] };
 				col.appendChild(buildCustomMatchNode(content, m, state.records));
 				played++;
-			});
+			}
 		});
 		if (!played) col.appendChild(el("div", { class: "swiss-empty-slot", text: "Chưa ghép cặp" }));
+		if (r === 7 && state.phase === "complete") {
+			col.appendChild(el("div", { class: "swiss-empty-slot", text: "🏆 Hạng 1 · 🥈 Hạng 2" }));
+			col.appendChild(renderCustomRanking(state));
+		}
 		track.appendChild(col);
 	});
 
-	const podiumCol = el("div", { class: "swiss-round custom-podium" });
-	podiumCol.appendChild(el("h4", { class: "swiss-round-head", text: "Vòng 7" }));
-	if (state.phase === "complete") {
-		podiumCol.appendChild(renderCustomRanking(state));
-	} else {
-		podiumCol.appendChild(el("div", { class: "swiss-empty-slot", text: "Tạm xếp hạng — còn vòng đấu" }));
-	}
-	track.appendChild(podiumCol);
-
 	section.appendChild(track);
-	requestAnimationFrame(function () {
-		drawSwissConnectors(track, participants, bracket.rounds);
-	});
 	return section;
 }
 
