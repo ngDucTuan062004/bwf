@@ -74,7 +74,7 @@
 		};
 	}
 
-	/* ---- Cấu trúc cố định 14 trận ---- */
+	/* ---- Cấu trúc cố định 14 trận (8 đội) ---- */
 	const STRUCTURE = [
 		{ pos: "R1.1", round: 1, feeds: [["S", 1], ["S", 2]] },
 		{ pos: "R1.2", round: 1, feeds: [["S", 3], ["S", 4]] },
@@ -91,6 +91,59 @@
 		{ pos: "R5.1", round: 5, feeds: [["W", "R4.1"], ["L", "R6.1"]] },
 		{ pos: "R7.1", round: 7, feeds: [["W", "R6.1"], ["W", "R5.1"]] },
 	];
+
+	/* ---- Cấu trúc linh hoạt 10 trận (6 đội, 5 vòng) ----
+	   R1 (3 seed) → R2 (trận chéo R2.1 + nhánh thắng R2.2 + nhánh thua R2.3).
+	   Kết quả trận chéo R2.1 quyết định case:
+	   - Case A (đội 0-1 thắng chéo): sau R2 = 1×2-0, 4×1-1, 1×0-2
+	     R3: 1-1 vs 1-1 ×2 → R4: 2-1 vs 2-1 → R5: 2-0 vs W R4 (CHUNG KẾT)
+	   - Case B (đội 1-0 thắng chéo): sau R2 = 2×2-0, 2×1-1, 2×0-2
+	     R3: 2-0 vs 2-0 · 1-1 vs 1-1 → R4: 2-1 vs 2-1 → R5: 3-0 vs W R4 (CHUNG KẾT)
+	   Cả 2 case: 10 trận, 5 vòng, chung kết = đội bất bại vs đội thắng R4. */
+	const STRUCTURE6_A = [
+		{ pos: "R1.1", round: 1, feeds: [["S", 1], ["S", 2]] },
+		{ pos: "R1.2", round: 1, feeds: [["S", 3], ["S", 4]] },
+		{ pos: "R1.3", round: 1, feeds: [["S", 5], ["S", 6]] },
+		{ pos: "R2.1", round: 2, feeds: [["W", "R1.1"], ["L", "R1.2"]] },
+		{ pos: "R2.2", round: 2, feeds: [["W", "R1.2"], ["W", "R1.3"]] },
+		{ pos: "R2.3", round: 2, feeds: [["L", "R1.1"], ["L", "R1.3"]] },
+		{ pos: "R3.1", round: 3, feeds: [["L", "R2.1"], ["W", "R2.3"]] },
+		{ pos: "R3.2", round: 3, feeds: [["W", "R2.1"], ["L", "R2.2"]] },
+		{ pos: "R4.1", round: 4, feeds: [["W", "R3.1"], ["W", "R3.2"]] },
+		{ pos: "R5.1", round: 5, feeds: [["W", "R2.2"], ["W", "R4.1"]] },
+	];
+	const STRUCTURE6_B = [
+		{ pos: "R1.1", round: 1, feeds: [["S", 1], ["S", 2]] },
+		{ pos: "R1.2", round: 1, feeds: [["S", 3], ["S", 4]] },
+		{ pos: "R1.3", round: 1, feeds: [["S", 5], ["S", 6]] },
+		{ pos: "R2.1", round: 2, feeds: [["W", "R1.1"], ["L", "R1.2"]] },
+		{ pos: "R2.2", round: 2, feeds: [["W", "R1.2"], ["W", "R1.3"]] },
+		{ pos: "R2.3", round: 2, feeds: [["L", "R1.1"], ["L", "R1.3"]] },
+		{ pos: "R3.1", round: 3, feeds: [["W", "R2.1"], ["W", "R2.2"]] },
+		{ pos: "R3.2", round: 3, feeds: [["L", "R2.2"], ["W", "R2.3"]] },
+		{ pos: "R4.1", round: 4, feeds: [["L", "R3.1"], ["W", "R3.2"]] },
+		{ pos: "R5.1", round: 5, feeds: [["W", "R3.1"], ["W", "R4.1"]] },
+	];
+
+	/* Chọn cấu trúc 6 đội theo kết quả trận chéo R2.1:
+	   - Case A: đội thua R1.2 (0-1) thắng R2.1
+	   - Case B: đội thắng R1.1 (1-0) thắng R2.1
+	   Chưa có kết quả R2.1 → mặc định Case A (hiển thị trước). */
+	function pickStructure6(matches) {
+		const byPos = {};
+		matches.forEach(function (m) { byPos[derivePos(matches, m)] = m; });
+		const r21 = byPos["R2.1"];
+		const r12 = byPos["R1.2"];
+		if (r21 && r12) {
+			const w21 = matchWinner(r21);
+			const w12 = matchWinner(r12);
+			if (w21 && w12) {
+				const loser12 = w12 === r12.p1 ? r12.p2 : r12.p1;
+				return w21 === loser12 ? STRUCTURE6_A : STRUCTURE6_B;
+			}
+		}
+		return STRUCTURE6_A;
+	}
 
 	/* pos của 1 trận: ưu tiên m.pos; fallback suy từ stage + thứ tự trong stage.
 	   LƯU Ý: fallback chỉ dùng cho dữ liệu legacy — KHÔNG tin cậy nếu trận cũ
@@ -115,11 +168,13 @@
 		return feed[0] === "W" ? w : (w === src.p1 ? src.p2 : src.p1);
 	}
 
-	/* Bracket cố định: 14 vị trí, mỗi vị trí = { pos, round, feeds, teams:[t1,t2], match } */
-	function buildFixedBracket(participants, matches) {
+	/* Bracket cố định: mỗi vị trí = { pos, round, feeds, teams:[t1,t2], match }.
+	   structure mặc định = STRUCTURE (8 đội); 6 đội truyền STRUCTURE6_A/B. */
+	function buildFixedBracket(participants, matches, structure) {
+		structure = structure || STRUCTURE;
 		const byPos = {};
 		matches.forEach(function (m) { byPos[derivePos(matches, m)] = m; });
-		return STRUCTURE.map(function (slot) {
+		return structure.map(function (slot) {
 			return {
 				pos: slot.pos,
 				round: slot.round,
@@ -128,6 +183,11 @@
 				match: byPos[slot.pos] || null
 			};
 		});
+	}
+
+	/* Bracket 6 đội: tự chọn case theo kết quả trận chéo R2.1 */
+	function buildFixedBracket6(participants, matches) {
+		return buildFixedBracket(participants, matches, pickStructure6(matches));
 	}
 
 	/* State: records, phase, eliminated, ranking, bracket */
@@ -177,10 +237,75 @@
 		return { records: records, phase: phase, eliminated: eliminated, ranking: ranking, bracket: bracket };
 	}
 
+	/* State 6 đội (linh hoạt): tổng quát hóa loại/xếp hạng theo cấu trúc đã chọn.
+	   Chung kết = trận vòng cao nhất (R5.1). Loại = thua trận không có feed L đi ra
+	   (và không phải chung kết). Xếp hạng: [vô địch, á quân] + còn lại theo thành tích. */
+	function computeFixedState6(participants, matches) {
+		const structure = pickStructure6(matches);
+		const bracket = buildFixedBracket(participants, matches, structure);
+		const byPos = {};
+		bracket.forEach(function (b) { byPos[b.pos] = b; });
+		const records = buildRecords(participants, matches);
+
+		const maxRound = bracket.reduce(function (acc, b) { return Math.max(acc, b.round); }, 0);
+		const gf = bracket.filter(function (b) { return b.round === maxRound; })[0] || null;
+		const gfWinner = gf && gf.match ? matchWinner(gf.match) : null;
+		const phase = gfWinner ? "complete" : "in-progress";
+
+		/* Map feed đi ra từ mỗi pos: { type: "W"|"L", dest: pos } */
+		const outFeeds = {};
+		bracket.forEach(function (b) {
+			b.feeds.forEach(function (f) {
+				if (f[0] === "S") return;
+				if (!outFeeds[f[1]]) outFeeds[f[1]] = [];
+				outFeeds[f[1]].push({ type: f[0], dest: b.pos });
+			});
+		});
+
+		const eliminated = [];
+		bracket.forEach(function (b) {
+			if (!b.match || b.round === maxRound) return;
+			const w = matchWinner(b.match);
+			if (!w) return;
+			const loser = w === b.match.p1 ? b.match.p2 : b.match.p1;
+			const hasLossOut = (outFeeds[b.pos] || []).some(function (f) { return f.type === "L"; });
+			if (!hasLossOut) eliminated.push(loser);
+		});
+
+		let ranking;
+		if (phase === "complete") {
+			ranking = [gfWinner];
+			const lFinal = gfWinner === gf.match.p1 ? gf.match.p2 : gf.match.p1;
+			ranking.push(lFinal);
+			const rest = participants.filter(function (t) { return ranking.indexOf(t) === -1; });
+			rest.sort(function (a, b) {
+				return (records[b].w - records[a].w) ||
+					((records[b].sf - records[b].sa) - (records[a].sf - records[a].sa)) ||
+					((records[b].pf - records[b].pa) - (records[a].pf - records[a].pa)) ||
+					(seedIndex(participants, a) - seedIndex(participants, b));
+			});
+			ranking = ranking.concat(rest);
+		} else {
+			ranking = participants.map(function (name) { return { name: name, rec: records[name] }; })
+				.slice().sort(standingsSort(participants)).map(function (x) { return x.name; });
+		}
+
+		return {
+			records: records, phase: phase, eliminated: eliminated, ranking: ranking,
+			bracket: bracket, structure: structure, caseId: structure === STRUCTURE6_A ? "A" : "B"
+		};
+	}
+
 	return {
+		STRUCTURE: STRUCTURE,
+		STRUCTURE6_A: STRUCTURE6_A,
+		STRUCTURE6_B: STRUCTURE6_B,
 		countSets: countSets,
 		matchWinner: matchWinner,
+		pickStructure6: pickStructure6,
 		buildFixedBracket: buildFixedBracket,
-		computeFixedState: computeFixedState
+		buildFixedBracket6: buildFixedBracket6,
+		computeFixedState: computeFixedState,
+		computeFixedState6: computeFixedState6
 	};
 });

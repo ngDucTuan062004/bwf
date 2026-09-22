@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="vi"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_standard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{width:8px;height:8px;}::-webkit-scrollbar-track{background:#0a0e18;}::-webkit-scrollbar-thumb{background:#262a35;border-radius:4px;}::-webkit-scrollbar-thumb:hover{background:#3d494c;}</style><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface": "#0f131d",
+          "primary-container": "#06b6d4",
+          "on-error-container": "#ffdad6",
+          "outline": "#869397",
+          "inverse-primary": "#00687a",
+          "on-error": "#690005",
+          "error": "#ffb4ab",
+          "surface-container-lowest": "#0a0e18",
+          "surface-container-low": "#171b26",
+          "on-primary-fixed-variant": "#004e5c",
+          "on-surface": "#dfe2f1",
+          "on-secondary-fixed-variant": "#004395",
+          "tertiary-container": "#1bbd85",
+          "on-secondary": "#002e6a",
+          "on-surface-variant": "#bcc9cd",
+          "secondary-fixed-dim": "#adc6ff",
+          "surface-container-highest": "#313540",
+          "secondary": "#adc6ff",
+          "surface-container": "#1c1f2a",
+          "surface-variant": "#313540",
+          "surface-dim": "#0f131d",
+          "outline-variant": "#3d494c",
+          "background": "#0f131d",
+          "inverse-surface": "#dfe2f1",
+          "on-primary-fixed": "#001f26",
+          "on-primary": "#003640",
+          "inverse-on-surface": "#2c303b",
+          "surface-tint": "#4cd7f6",
+          "error-container": "#93000a",
+          "primary-fixed-dim": "#4cd7f6",
+          "primary": "#4cd7f6",
+          "tertiary-fixed": "#6ffbbe",
+          "secondary-container": "#0566d9",
+          "on-tertiary-fixed": "#002113",
+          "on-tertiary-fixed-variant": "#005236",
+          "secondary-fixed": "#d8e2ff",
+          "tertiary-fixed-dim": "#4edea3",
+          "surface-bright": "#353944",
+          "tertiary": "#4edea3",
+          "on-secondary-fixed": "#001a42",
+          "on-tertiary": "#003824",
+          "on-secondary-container": "#e6ecff",
+          "surface-container-high": "#262a35",
+          "primary-fixed": "#acedff",
+          "on-background": "#dfe2f1",
+          "on-tertiary-container": "#00452e",
+          "on-primary-container": "#00424f"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-sm": "0.5rem",
+          "margin": "2rem",
+          "space-2xl": "3rem",
+          "gutter": "1.5rem",
+          "space-xl": "2rem",
+          "space-xs": "0.25rem",
+          "gutter-mobile": "0.75rem",
+          "space-md": "1rem",
+          "margin-mobile": "1rem",
+          "space-lg": "1.5rem"
+        },
+        "fontFamily": {
+          "headline-md": [
+            "Space Grotesk"
+          ],
+          "label-sm": [
+            "JetBrains Mono"
+          ],
+          "headline-lg-mobile": [
+            "Space Grotesk"
+          ],
+          "body-md": [
+            "Inter"
+          ],
+          "body-lg": [
+            "Inter"
+          ],
+          "headline-sm": [
+            "Space Grotesk"
+          ],
+          "body-sm": [
+            "Inter"
+          ],
+          "display-xl": [
+            "Space Grotesk"
+          ],
+          "headline-lg": [
+            "Space Grotesk"
+          ],
+          "label-md": [
+            "JetBrains Mono"
+          ],
+          "label-lg": [
+            "JetBrains Mono"
+          ]
+        }
+      },
+    },
+  }</script></head><body class="bg-background font-body-md text-body-md text-on-surface selection:bg-primary-container selection:text-on-primary-container min-h-screen"><header class="fixed top-0 left-0 w-full z-50 bg-surface-container-lowest/90 backdrop-blur-xl border-b border-outline-variant/30 shadow-[0_1px_12px_rgba(0,0,0,0.4)]"><div class="h-16 w-full px-gutter flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md shrink-0"><div class="flex items-center gap-space-sm"><div class="w-2 h-6 bg-primary rounded-DEFAULT shadow-[0_0_8px_#4cd7f6]"></div><span class="font-headline-sm text-headline-sm uppercase tracking-wider text-on-surface">SWISS SYSTEM 8-TEAM BRACKET TEMPLATE</span></div><div class="hidden sm:flex items-center gap-space-xs px-space-sm py-space-xs rounded bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm uppercase"><span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span><span>Khung Đấu Trừu Tượng 7 Vòng</span></div></div><nav class="hidden xl:flex items-center gap-space-xs"><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md bg-primary-container text-on-primary-container font-semibold shadow-[0_0_12px_rgba(6,182,212,0.3)]" href="#">Sơ Đồ Phân Nhánh Flowchart</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md transition-all text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" href="#legend">Quy Tắc Luồng Đi</a><a class="px-space-md py-space-xs rounded-lg font-label-md text-label-md transition-all text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface" href="#structure">Cấu Trúc Hạt Giống</a></nav><div class="flex items-center gap-space-sm shrink-0"><div class="flex items-center gap-space-xs bg-surface-container-high px-space-md py-space-xs rounded-lg border border-outline-variant/40"><span class="material-symbols-outlined text-primary text-[18px]">schema</span><span class="font-label-sm text-label-sm text-on-surface uppercase font-bold">GENERIC TOURNAMENT MODEL</span></div></div></div></header><main class="w-full pt-16 bg-background min-h-screen"><div class="flex flex-col w-full">
+<!-- Dynamic Atmospheric Glow Background Layer -->
+<div class="relative w-full overflow-hidden">
+<div class="absolute top-0 left-1/4 w-[600px] h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none -z-10"></div>
+<div class="absolute top-72 right-1/4 w-[500px] h-80 bg-secondary-container/10 rounded-full blur-3xl pointer-events-none -z-10"></div>
+<!-- Flow Legend & Meta Control Ribbon -->
+<section class="w-full px-gutter py-space-md bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant/20" id="legend">
+<div class="max-w-[1780px] mx-auto flex flex-col xl:flex-row items-start xl:items-center justify-between gap-space-md">
+<!-- Flowchart Arrow Legend -->
+<div class="flex flex-wrap items-center gap-space-md">
+<div class="flex items-center gap-2 px-space-sm py-1 rounded bg-surface-container border border-outline-variant/30">
+<span class="inline-flex items-center text-tertiary font-bold text-lg font-mono">━━►</span>
+<span class="font-label-sm text-label-sm text-tertiary font-bold uppercase">Nhánh Thắng (Winner Advances)</span>
+<span class="text-xs text-on-surface-variant font-mono">(Thắng R1/R2/R3/R4/R5/R6)</span>
+</div>
+<div class="flex items-center gap-2 px-space-sm py-1 rounded bg-surface-container border border-outline-variant/30">
+<span class="inline-flex items-center text-error font-bold text-lg font-mono">- - ❯</span>
+<span class="font-label-sm text-label-sm text-error font-bold uppercase">Nhánh Thua / Xuống Nhánh Sinh Tử</span>
+<span class="text-xs text-on-surface-variant font-mono">(Thua R1 xuống Vòng 2)</span>
+</div>
+<div class="flex items-center gap-2 px-space-sm py-1 rounded bg-surface-container border border-outline-variant/30">
+<span class="inline-flex items-center text-secondary-fixed font-bold text-lg font-mono">═══►</span>
+<span class="font-label-sm text-label-sm text-secondary-fixed font-bold uppercase">Luồng Chung Kết &amp; Danh Hiệu</span>
+<span class="text-xs text-on-surface-variant font-mono">(Vào Grand Final R7)</span>
+</div>
+<div class="flex items-center gap-2 px-space-sm py-1 rounded bg-error-container/20 border border-error/30 text-error">
+<span class="material-symbols-outlined text-[16px]">cancel</span>
+<span class="font-label-sm text-label-sm uppercase font-bold">Điểm Thoát (Elimination)</span>
+</div>
+</div>
+<!-- Rule Badge -->
+<div class="flex items-center gap-space-sm text-xs font-mono bg-surface-container-high px-space-md py-1.5 rounded-lg border border-outline-variant/40 text-on-surface-variant">
+<span class="material-symbols-outlined text-primary text-[16px]">rule</span>
+<span>Quy chuẩn luồng: Slot Trên/Vế Trái = Đội Thắng ván • Slot Dưới/Vế Phải = Đội Thua</span>
+</div>
+</div>
+</section>
+<!-- Main Generic Tournament Flowchart Canvas -->
+<section class="w-full px-gutter py-space-xl">
+<div class="max-w-[1880px] mx-auto">
+<!-- Section Title -->
+<div class="flex flex-col md:flex-row md:items-center justify-between pb-space-md mb-space-lg border-b border-outline-variant/20 gap-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="p-2 rounded-lg bg-primary/10 border border-primary/30 text-primary">
+<span class="material-symbols-outlined text-[28px]">account_tree</span>
+</div>
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Sơ Đồ Khung Nhánh Đấu Swiss Stage Trừu Tượng (8 Đội Tuyển • 7 Vòng)</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant font-mono">GENERIC SWISS STAGE TOURNAMENT BRACKET FLOWCHART — Cấu trúc phân nhánh logic từ Slot Hạt Giống đến Chung Kết Tổng</p>
+</div>
+</div>
+<div class="flex items-center gap-space-xs font-mono text-xs bg-surface-container-low px-space-md py- space-xs rounded border border-outline-variant/30">
+<span class="text-primary">● 8 Slot Khởi Đầu</span>
+<span class="text-on-surface-variant">→</span>
+<span class="text-tertiary">● 7 Giai Đoạn Đấu</span>
+<span class="text-on-surface-variant">→</span>
+<span class="text-secondary-fixed">● 1 Vô Địch • 1 Á Quân • 1 Hạng Ba</span>
+</div>
+</div>
+<!-- Bracket Scroll Matrix with Inter-round Branching Connectors -->
+<div class="w-full overflow-x-auto pb-space-2xl">
+<div class="min-w-[1720px] flex items-stretch gap-2 relative">
+<!-- ================= ROUND 1: KHAI MẠC (4 MATCHES) ================= -->
+<div class="w-[220px] shrink-0 flex flex-col gap-space-md">
+<!-- Header -->
+<div class="bg-surface-container-low border-t-2 border-primary p-space-sm rounded-lg flex flex-col">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider font-bold">VÒNG 1 (R1)</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-highest text-[10px] font-mono text-on-surface-variant">4 TRẬN BO1</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface">Khai Mạc (0-0)</span>
+<span class="text-[11px] text-on-surface-variant font-mono mt-0.5">8 Slot hạt giống bắt đầu</span>
+</div>
+<!-- Matches Container -->
+<div class="flex flex-col gap-space-md justify-between flex-1 py-1">
+<!-- R1 Match 1 -->
+<div class="relative bg-surface-container border border-outline-variant/40 rounded-xl p-space-sm shadow-md hover:border-primary/60 transition-all">
+<div class="flex items-center justify-between text-[11px] font-mono text-on-surface-variant mb-1.5 pb-1 border-b border-outline-variant/20">
+<span class="text-primary font-bold">TRẬN 1.1</span>
+<span>BO1</span>
+</div>
+<!-- Slot 1 (Winner) -->
+<div class="flex items-center justify-between bg-primary/10 border border-primary/30 px-space-xs py-1 rounded mb-1">
+<div class="flex items-center gap-1.5">
+<span class="w-4 h-4 rounded bg-primary text-on-primary text-[10px] font-bold flex items-center justify-center font-mono">1</span>
+<span class="font-headline-sm text-[13px] text-primary font-bold">Hạt Giống 1 (Slot A)</span>
+</div>
+<span class="text-[10px] font-mono text-primary font-bold bg-primary/20 px-1 rounded">THẮNG</span>
+</div>
+<!-- Slot 2 (Loser) -->
+<div class="flex items-center justify-between bg-surface-container-lowest/60 px-space-xs py-1 rounded opacity-75">
+<div class="flex items-center gap-1.5">
+<span class="w-4 h-4 rounded bg-surface-container-highest text-on-surface-variant text-[10px] flex items-center justify-center font-mono">2</span>
+<span class="font-body-sm text-[13px] text-on-surface-variant">Hạt Giống 2 (Slot B)</span>
+</div>
+<span class="text-[10px] font-mono text-error">THUA</span>
+</div>
+<div class="mt-1 flex items-center justify-between text-[9px] font-mono text-on-surface-variant">
+<span class="text-tertiary">▲ Thắng ➔ R2 (1-0)</span>
+<span class="text-error">▼ Thua ➔ R2 (0-1)</span>
+</div>
+</div>
+<!-- R1 Match 2 -->
+<div class="relative bg-surface-container border border-outline-variant/40 rounded-xl p-space-sm shadow-md hover:border-primary/60 transition-all">
+<div class="flex items-center justify-between text-[11px] font-mono text-on-surface-variant mb-1.5 pb-1 border-b border-outline-variant/20">
+<span class="text-primary font-bold">TRẬN 1.2</span>
+<span>BO1</span>
+</div>
+<!-- Slot 3 (Winner) -->
+<div class="flex items-center justify-between bg-primary/10 border border-primary/30 px-space-xs py-1 rounded mb-1">
+<div class="flex items-center gap-1.5">
+<span class="w-4 h-4 rounded bg-primary text-on-primary text-[10px] font-bold flex items-center justify-center font-mono">3</span>
+<span class="font-headline-sm text-[13px] text-primary font-bold">Hạt Giống 3 (Slot C)</span>
+</div>
+<span class="text-[10px] font-mono text-primary font-bold bg-primary/20 px-1 rounded">THẮNG</span>
+</div>
+<!-- Slot 4 (Loser) -->
+<div class="flex items-center justify-between bg-surface-container-lowest/60 px-space-xs py-1 rounded opacity-75">
+<div class="flex items-center gap-1.5">
+<span class="w-4 h-4 rounded bg-surface-container-highest text-on-surface-variant text-[10px] flex items-center justify-center font-mono">4</span>
+<span class="font-body-sm text-[13px] text-on-surface-variant">Hạt Giống 4 (Slot D)</span>
+</div>
+<span class="text-[10px] font-mono text-error">THUA</span>
+</div>
+<div class="mt-1 flex items-center justify-between text-[9px] font-mono text-on-surface-variant">
+<span class="text-tertiary">▲ Thắng ➔ R2 (1-0)</span>
+<span class="text-error">▼ Thua ➔ R2 (0-1)</span>
+</div>
+</div>
+<!-- R1 Match 3 -->
+<div class="relative bg-surface-container border border-outline-variant/40 rounded-xl p-space-sm shadow-md hover:border-primary/60 transition-all">
+<div class="flex items-center justify-between text-[11px] font-mono text-on-surface-variant mb-1.5 pb-1 border-b border-outline-variant/20">
+<span class="text-primary font-bold">TRẬN 1.3</span>
+<span>BO1</span>
+</div>
+<!-- Slot 5 (Winner) -->
+<div class="flex items-center justify-between bg-primary/10 border border-primary/30 px-space-xs py-1 rounded mb-1">
+<div class="flex items-center gap-1.5">
+<span class="w-4 h-4 rounded bg-primary text-on-primary text-[10px] font-bold flex items-center justify-center font-mono">5</span>
+<span class="font-headline-sm text-[13px] text-primary font-bold">Hạt Giống 5 (Slot E)</span>
+</div>
+<span class="text-[10px] font-mono text-primary font-bold bg-primary/20 px-1 rounded">THẮNG</span>
+</div>
+<!-- Slot 6 (Loser) -->
+<div class="flex items-center justify-between bg-surface-container-lowest/60 px-space-xs py-1 rounded opacity-75">
+<div class="flex items-center gap-1.5">
+<span class="w-4 h-4 rounded bg-surface-container-highest text-on-surface-variant text-[10px] flex items-center justify-center font-mono">6</span>
+<span class="font-body-sm text-[13px] text-on-surface-variant">Hạt Giống 6 (Slot F)</span>
+</div>
+<span class="text-[10px] font-mono text-error">THUA</span>
+</div>
+<div class="mt-1 flex items-center justify-between text-[9px] font-mono text-on-surface-variant">
+<span class="text-tertiary">▲ Thắng ➔ R2 (1-0)</span>
+<span class="text-error">▼ Thua ➔ R2 (0-1)</span>
+</div>
+</div>
+<!-- R1 Match 4 -->
+<div class="relative bg-surface-container border border-outline-variant/40 rounded-xl p-space-sm shadow-md hover:border-primary/60 transition-all">
+<div class="flex items-center justify-between text-[11px] font-mono text-on-surface-variant mb-1.5 pb-1 border-b border-outline-variant/20">
+<span class="text-primary font-bold">TRẬN 1.4</span>
+<span>BO1</span>
+</div>
+<!-- Slot 7 (Winner) -->
+<div class="flex items-center justify-between bg-primary/10 border border-primary/30 px-space-xs py-1 rounded mb-1">
+<div class="flex items-center gap-1.5">
+<span class="w-4 h-4 rounded bg-primary text-on-primary text-[10px] font-bold flex items-center justify-center font-mono">7</span>
+<span class="font-headline-sm text-[13px] text-primary font-bold">Hạt Giống 7 (Slot G)</span>
+</div>
+<span class="text-[10px] font-mono text-primary font-bold bg-primary/20 px-1 rounded">THẮNG</span>
+</div>
+<!-- Slot 8 (Loser) -->
+<div class="flex items-center justify-between bg-surface-container-lowest/60 px-space-xs py-1 rounded opacity-75">
+<div class="flex items-center gap-1.5">
+<span class="w-4 h-4 rounded bg-surface-container-highest text-on-surface-variant text-[10px] flex items-center justify-center font-mono">8</span>
+<span class="font-body-sm text-[13px] text-on-surface-variant">Hạt Giống 8 (Slot H)</span>
+</div>
+<span class="text-[10px] font-mono text-error">THUA</span>
+</div>
+<div class="mt-1 flex items-center justify-between text-[9px] font-mono text-on-surface-variant">
+<span class="text-tertiary">▲ Thắng ➔ R2 (1-0)</span>
+<span class="text-error">▼ Thua ➔ R2 (0-1)</span>
+</div>
+</div>
+</div>
+</div>
+<!-- CONNECTOR 1 -> 2 -->
+<div class="w-7 shrink-0 flex flex-col justify-between py-20 relative pointer-events-none select-none">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 28 620">
+<defs>
+<marker id="arrow-green" markerheight="6" markerunits="strokeWidth" markerwidth="6" orient="auto" refx="5" refy="3">
+<path d="M0,0 L0,6 L6,3 z" fill="#4edea3"></path>
+</marker>
+<marker id="arrow-red" markerheight="6" markerunits="strokeWidth" markerwidth="6" orient="auto" refx="5" refy="3">
+<path d="M0,0 L0,6 L6,3 z" fill="#ffb4ab"></path>
+</marker>
+</defs>
+<!-- Upper Paths (Winners to 1-0) -->
+<path d="M 2 70 C 14 70, 14 100, 24 100" fill="none" marker-end="url(#arrow-green)" stroke="#4edea3" stroke-width="2"></path>
+<path d="M 2 210 C 14 210, 14 180, 24 180" fill="none" marker-end="url(#arrow-green)" stroke="#4edea3" stroke-width="2"></path>
+<!-- Lower Paths (Losers to 0-1) -->
+<path d="M 2 370 C 14 370, 14 430, 24 430" fill="none" marker-end="url(#arrow-red)" stroke="#ffb4ab" stroke-dasharray="4 2" stroke-width="2"></path>
+<path d="M 2 540 C 14 540, 14 510, 24 510" fill="none" marker-end="url(#arrow-red)" stroke="#ffb4ab" stroke-dasharray="4 2" stroke-width="2"></path>
+</svg>
+</div>
+<!-- ================= ROUND 2: PHÂN NHÁNH 1-0 & 0-1 (4 MATCHES) ================= -->
+<div class="w-[230px] shrink-0 flex flex-col gap-space-md">
+<!-- Header -->
+<div class="bg-surface-container-low border-t-2 border-tertiary p-space-sm rounded-lg flex flex-col">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-tertiary uppercase tracking-wider font-bold">VÒNG 2 (R2)</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-highest text-[10px] font-mono text-on-surface-variant">4 TRẬN BO3</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface">Phân Nhánh 1-0 / 0-1</span>
+<span class="text-[11px] text-on-surface-variant font-mono mt-0.5">Tách 2 nhánh: Thắng &amp; Sinh Tử</span>
+</div>
+<!-- Subgroup Nhánh Thắng (1-0) -->
+<div class="flex flex-col gap-2 p-2 rounded-xl bg-surface-container-lowest/70 border border-tertiary/30">
+<div class="flex items-center justify-between px-1">
+<span class="font-label-sm text-[11px] text-tertiary uppercase font-bold flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span> Nhánh Thắng (1-0)
+</span>
+<span class="text-[10px] font-mono text-tertiary font-bold">2 Suất</span>
+</div>
+<!-- R2 Match 2.1 (Winners) -->
+<div class="bg-surface-container border border-outline-variant/40 rounded-lg p-space-xs shadow-sm">
+<div class="flex items-center justify-between text-[10px] font-mono text-on-surface-variant mb-1">
+<span class="text-tertiary font-bold">TRẬN 2.1 (BO3)</span>
+<span>Thắng R1 #1 vs #2</span>
+</div>
+<div class="bg-tertiary/10 border border-tertiary/40 px-space-xs py-1 rounded mb-1 flex items-center justify-between">
+<span class="font-headline-sm text-[12px] text-tertiary font-bold">Đội Thắng R1 #1</span>
+<span class="text-[10px] font-mono text-tertiary font-bold">THẮNG ➔ R6</span>
+</div>
+<div class="bg-surface-container-lowest/60 px-space-xs py-1 rounded opacity-75 flex items-center justify-between">
+<span class="font-body-sm text-[12px] text-on-surface-variant">Đội Thắng R1 #2</span>
+<span class="text-[10px] font-mono text-error">THUA ➔ R3</span>
+</div>
+</div>
+<!-- R2 Match 2.2 (Winners) -->
+<div class="bg-surface-container border border-outline-variant/40 rounded-lg p-space-xs shadow-sm">
+<div class="flex items-center justify-between text-[10px] font-mono text-on-surface-variant mb-1">
+<span class="text-tertiary font-bold">TRẬN 2.2 (BO3)</span>
+<span>Thắng R1 #3 vs #4</span>
+</div>
+<div class="bg-tertiary/10 border border-tertiary/40 px-space-xs py-1 rounded mb-1 flex items-center justify-between">
+<span class="font-headline-sm text-[12px] text-tertiary font-bold">Đội Thắng R1 #3</span>
+<span class="text-[10px] font-mono text-tertiary font-bold">THẮNG ➔ R6</span>
+</div>
+<div class="bg-surface-container-lowest/60 px-space-xs py-1 rounded opacity-75 flex items-center justify-between">
+<span class="font-body-sm text-[12px] text-on-surface-variant">Đội Thắng R1 #4</span>
+<span class="text-[10px] font-mono text-error">THUA ➔ R3</span>
+</div>
+</div>
+</div>
+<!-- Subgroup Nhánh Thua (0-1) - Trận Sinh Tử -->
+<div class="flex flex-col gap-2 p-2 rounded-xl bg-surface-container-lowest/70 border border-error/30 mt-2">
+<div class="flex items-center justify-between px-1">
+<span class="font-label-sm text-[11px] text-error uppercase font-bold flex items-center gap-1">
+<span class="w-2 h-2 rounded-full bg-error animate-pulse"></span> Nhánh Thua (0-1)
+</span>
+<span class="text-[10px] font-mono text-error">Sinh Tử BO3</span>
+</div>
+<!-- R2 Match 2.3 (Elimination) -->
+<div class="bg-surface-container border border-outline-variant/40 rounded-lg p-space-xs shadow-sm">
+<div class="flex items-center justify-between text-[10px] font-mono text-on-surface-variant mb-1">
+<span class="text-error font-bold">TRẬN 2.3 (BO3)</span>
+<span>Thua R1 #1 vs #2</span>
+</div>
+<div class="bg-primary/10 border border-primary/40 px-space-xs py-1 rounded mb-1 flex items-center justify-between">
+<span class="font-headline-sm text-[12px] text-primary font-bold">Đội Thua R1 #1</span>
+<span class="text-[10px] font-mono text-primary font-bold">THẮNG ➔ R3</span>
+</div>
+<div class="bg-error-container/20 border border-error/20 px-space-xs py-1 rounded flex items-center justify-between">
+<span class="font-body-sm text-[12px] text-error line-through">Đội Thua R1 #2</span>
+<span class="text-[10px] font-mono text-error font-bold">BỊ LOẠI (0-2)</span>
+</div>
+</div>
+<!-- R2 Match 2.4 (Elimination) -->
+<div class="bg-surface-container border border-outline-variant/40 rounded-lg p-space-xs shadow-sm">
+<div class="flex items-center justify-between text-[10px] font-mono text-on-surface-variant mb-1">
+<span class="text-error font-bold">TRẬN 2.4 (BO3)</span>
+<span>Thua R1 #3 vs #4</span>
+</div>
+<div class="bg-primary/10 border border-primary/40 px-space-xs py-1 rounded mb-1 flex items-center justify-between">
+<span class="font-headline-sm text-[12px] text-primary font-bold">Đội Thua R1 #3</span>
+<span class="text-[10px] font-mono text-primary font-bold">THẮNG ➔ R3</span>
+</div>
+<div class="bg-error-container/20 border border-error/20 px-space-xs py-1 rounded flex items-center justify-between">
+<span class="font-body-sm text-[12px] text-error line-through">Đội Thua R1 #4</span>
+<span class="text-[10px] font-mono text-error font-bold">BỊ LOẠI (0-2)</span>
+</div>
+</div>
+</div>
+<!-- Elimination Exit Callout R2 -->
+<div class="bg-error-container/20 border border-error/40 rounded-xl p-space-xs flex items-center gap-2 text-error">
+<span class="material-symbols-outlined text-[18px] shrink-0">cancel</span>
+<div>
+<span class="font-label-sm text-[11px] uppercase font-bold block">ĐIỂM THOÁT HẠNG 7 - 8</span>
+<span class="text-[11px] text-on-surface font-mono">2 Đội thua 0-2 chính thức bị loại</span>
+</div>
+</div>
+</div>
+<!-- CONNECTOR 2 -> 3 / 6 -->
+<div class="w-7 shrink-0 flex flex-col justify-between py-16 relative pointer-events-none select-none">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 28 620">
+<!-- Winners of R2 go to Round 6 directly (Upper line passing through) -->
+<path d="M 2 80 C 14 80, 20 50, 26 50" fill="none" marker-end="url(#arrow-green)" stroke="#4edea3" stroke-width="2.5"></path>
+<!-- Losers of R2 Upper Branch drop down to Round 3 -->
+<path d="M 2 130 C 14 130, 14 240, 24 240" fill="none" marker-end="url(#arrow-red)" stroke="#ffb4ab" stroke-dasharray="4 2" stroke-width="2"></path>
+<!-- Winners of R2 Lower Branch go up to Round 3 -->
+<path d="M 2 410 C 14 410, 14 360, 24 360" fill="none" marker-end="url(#arrow-green)" stroke="#4edea3" stroke-width="2"></path>
+</svg>
+</div>
+<!-- ================= ROUND 3: QUYẾT ĐẤU SINH TỬ (2 MATCHES) ================= -->
+<div class="w-[230px] shrink-0 flex flex-col gap-space-md">
+<!-- Header -->
+<div class="bg-surface-container-low border-t-2 border-primary p-space-sm rounded-lg flex flex-col">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider font-bold">VÒNG 3 (R3)</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-highest text-[10px] font-mono text-on-surface-variant">2 TRẬN BO3</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface">Vòng Đào Thải</span>
+<span class="text-[11px] text-on-surface-variant font-mono mt-0.5">Thua R2(1-0) vs Thắng R2(0-1)</span>
+</div>
+<div class="flex flex-col gap-space-md justify-center flex-1">
+<!-- R3 Match 3.1 -->
+<div class="bg-surface-container border border-outline-variant/40 rounded-xl p-space-sm shadow-md">
+<div class="flex items-center justify-between text-[11px] font-mono text-on-surface-variant mb-1.5 pb-1 border-b border-outline-variant/20">
+<span class="text-primary font-bold">TRẬN 3.1</span>
+<span class="text-error font-semibold">Sinh Tử BO3</span>
+</div>
+<!-- Winner -->
+<div class="bg-primary/10 border border-primary/30 px-space-xs py-1 rounded mb-1 flex items-center justify-between">
+<div>
+<span class="font-headline-sm text-[12px] text-primary font-bold block">Đội Thua R2 #1</span>
+<span class="text-[9px] text-tertiary font-mono">(Rơi từ nhánh 1-0)</span>
+</div>
+<span class="text-[10px] font-mono text-primary font-bold bg-primary/20 px-1 rounded">THẮNG ➔ R4</span>
+</div>
+<!-- Loser -->
+<div class="bg-error-container/20 border border-error/20 px-space-xs py-1 rounded flex items-center justify-between">
+<div>
+<span class="font-body-sm text-[12px] text-error line-through block">Đội Thắng R2 #3</span>
+<span class="text-[9px] text-on-surface-variant font-mono">(Nhánh 0-1 lên)</span>
+</div>
+<span class="text-[10px] font-mono text-error font-bold">BỊ LOẠI</span>
+</div>
+</div>
+<!-- R3 Match 3.2 -->
+<div class="bg-surface-container border border-outline-variant/40 rounded-xl p-space-sm shadow-md">
+<div class="flex items-center justify-between text-[11px] font-mono text-on-surface-variant mb-1.5 pb-1 border-b border-outline-variant/20">
+<span class="text-primary font-bold">TRẬN 3.2</span>
+<span class="text-error font-semibold">Sinh Tử BO3</span>
+</div>
+<!-- Winner -->
+<div class="bg-primary/10 border border-primary/30 px-space-xs py-1 rounded mb-1 flex items-center justify-between">
+<div>
+<span class="font-headline-sm text-[12px] text-primary font-bold block">Đội Thua R2 #2</span>
+<span class="text-[9px] text-tertiary font-mono">(Rơi từ nhánh 1-0)</span>
+</div>
+<span class="text-[10px] font-mono text-primary font-bold bg-primary/20 px-1 rounded">THẮNG ➔ R4</span>
+</div>
+<!-- Loser -->
+<div class="bg-error-container/20 border border-error/20 px-space-xs py-1 rounded flex items-center justify-between">
+<div>
+<span class="font-body-sm text-[12px] text-error line-through block">Đội Thắng R2 #4</span>
+<span class="text-[9px] text-on-surface-variant font-mono">(Nhánh 0-1 lên)</span>
+</div>
+<span class="text-[10px] font-mono text-error font-bold">BỊ LOẠI</span>
+</div>
+</div>
+<!-- Elimination Exit Callout R3 -->
+<div class="bg-error-container/20 border border-error/40 rounded-xl p-space-xs flex items-center gap-2 text-error">
+<span class="material-symbols-outlined text-[18px] shrink-0">cancel</span>
+<div>
+<span class="font-label-sm text-[11px] uppercase font-bold block">ĐIỂM THOÁT HẠNG 5 - 6</span>
+<span class="text-[11px] text-on-surface font-mono">2 Đội thua Vòng 3 chính thức bị loại</span>
+</div>
+</div>
+</div>
+</div>
+<!-- CONNECTOR 3 -> 4 -->
+<div class="w-7 shrink-0 flex flex-col justify-center py-20 relative pointer-events-none select-none">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 28 300">
+<path d="M 2 80 C 14 80, 14 150, 24 150" fill="none" marker-end="url(#arrow-green)" stroke="#4edea3" stroke-width="2.5"></path>
+<path d="M 2 220 C 14 220, 14 150, 24 150" fill="none" marker-end="url(#arrow-green)" stroke="#4edea3" stroke-width="2.5"></path>
+</svg>
+</div>
+<!-- ================= ROUND 4: BÁN KẾT NHÁNH THUA (1 MATCH) ================= -->
+<div class="w-[230px] shrink-0 flex flex-col gap-space-md">
+<!-- Header -->
+<div class="bg-surface-container-low border-t-2 border-primary p-space-sm rounded-lg flex flex-col">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider font-bold">VÒNG 4 (R4)</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-highest text-[10px] font-mono text-on-surface-variant">1 TRẬN BO3</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface">Bán Kết Nhánh Thua</span>
+<span class="text-[11px] text-on-surface-variant font-mono mt-0.5">Thắng R3 #1 vs Thắng R3 #2</span>
+</div>
+<div class="flex flex-col gap-space-md justify-center flex-1 my-auto">
+<!-- R4 Match 4.1 -->
+<div class="bg-surface-container border border-primary/40 rounded-xl p-space-sm shadow-lg">
+<div class="flex items-center justify-between text-[11px] font-mono text-on-surface-variant mb-1.5 pb-1 border-b border-outline-variant/20">
+<span class="text-primary font-bold">TRẬN 4.1</span>
+<span class="text-tertiary font-bold">Tranh Vé Vòng 5</span>
+</div>
+<!-- Winner -->
+<div class="bg-primary/15 border border-primary/40 px-space-xs py-1.5 rounded mb-1.5 flex items-center justify-between">
+<div>
+<span class="font-headline-sm text-[13px] text-primary font-bold block">Đội Thắng R3 #1</span>
+<span class="text-[9px] text-tertiary font-mono">Tứ Tuyển Tranh Vé</span>
+</div>
+<span class="text-[10px] font-mono text-primary font-bold bg-primary/30 px-1.5 py-0.5 rounded">THẮNG ➔ R5</span>
+</div>
+<!-- Loser -->
+<div class="bg-error-container/20 border border-error/30 px-space-xs py-1.5 rounded flex items-center justify-between">
+<div>
+<span class="font-body-sm text-[12px] text-error line-through block">Đội Thắng R3 #2</span>
+<span class="text-[9px] text-on-surface-variant font-mono">Dừng bước Top 4</span>
+</div>
+<span class="text-[10px] font-mono text-error font-bold">BỊ LOẠI</span>
+</div>
+</div>
+<!-- Elimination Exit Callout R4 -->
+<div class="bg-error-container/20 border border-error/40 rounded-xl p-space-xs flex items-center gap-2 text-error">
+<span class="material-symbols-outlined text-[18px] shrink-0">cancel</span>
+<div>
+<span class="font-label-sm text-[11px] uppercase font-bold block">ĐIỂM THOÁT HẠNG 4</span>
+<span class="text-[11px] text-on-surface font-mono">Đội thua dừng bước vị trí #4</span>
+</div>
+</div>
+</div>
+</div>
+<!-- CONNECTOR 4 -> 5 -->
+<div class="w-7 shrink-0 flex flex-col justify-center py-20 relative pointer-events-none select-none">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 28 300">
+<path d="M 2 150 L 24 150" fill="none" marker-end="url(#arrow-green)" stroke="#4edea3" stroke-width="2.5"></path>
+</svg>
+</div>
+<!-- ================= ROUND 5: TRANH HẠNG 3 (1 MATCH) ================= -->
+<div class="w-[230px] shrink-0 flex flex-col gap-space-md">
+<!-- Header -->
+<div class="bg-surface-container-low border-t-2 border-tertiary p-space-sm rounded-lg flex flex-col">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-tertiary uppercase tracking-wider font-bold">VÒNG 5 (R5)</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-highest text-[10px] font-mono text-on-surface-variant">1 TRẬN BO3</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface">Chung Kết Nhánh Thua</span>
+<span class="text-[11px] text-on-surface-variant font-mono mt-0.5">Thắng R4 vs Thua R6</span>
+</div>
+<div class="flex flex-col gap-space-md justify-center flex-1 my-auto">
+<!-- R5 Match 5.1 -->
+<div class="bg-surface-container border border-outline-variant/50 rounded-xl p-space-sm shadow-lg">
+<div class="flex items-center justify-between text-[11px] font-mono text-on-surface-variant mb-1.5 pb-1 border-b border-outline-variant/20">
+<span class="text-tertiary font-bold">TRẬN 5.1 (BO3)</span>
+<span class="text-secondary-fixed font-semibold">Tranh Vé Chung Kết</span>
+</div>
+<!-- Winner to Grand Final -->
+<div class="bg-primary/20 border border-primary/40 px-space-xs py-1.5 rounded mb-1.5 flex items-center justify-between">
+<div>
+<span class="font-headline-sm text-[13px] text-primary font-bold block">Đội Thắng R4</span>
+<span class="text-[9px] text-primary font-mono">Bền bỉ lội ngược dòng</span>
+</div>
+<span class="text-[10px] font-mono text-primary font-bold bg-primary/30 px-1.5 py-0.5 rounded">VÀO CHUNG KẾT (R7)</span>
+</div>
+<!-- Loser takes 3rd place -->
+<div class="bg-surface-container-high border border-outline-variant/40 px-space-xs py-1.5 rounded flex items-center justify-between">
+<div>
+<span class="font-body-sm text-[12px] text-on-surface block">Đội Thua R6</span>
+<span class="text-[9px] text-tertiary font-mono">Rơi từ Vòng 6 xuống</span>
+</div>
+<span class="text-[10px] font-mono text-tertiary font-bold bg-tertiary/20 px-1.5 py-0.5 rounded">HẠNG 3 CHUNG CUỘC</span>
+</div>
+</div>
+<!-- Bronze Medal Callout -->
+<div class="bg-surface-container-highest border border-tertiary/40 rounded-xl p-space-xs flex items-center gap-2 shadow-md">
+<span class="material-symbols-outlined text-tertiary text-[22px] shrink-0">workspace_premium</span>
+<div>
+<span class="font-label-sm text-[11px] text-tertiary uppercase font-bold block">DANH HIỆU HẠNG BA</span>
+<span class="text-[11px] text-on-surface font-mono">Đội thua R5 nhận Huy Chương Đồng</span>
+</div>
+</div>
+</div>
+</div>
+<!-- CONNECTOR 5 -> 7 (and R6 -> R5/R7) -->
+<div class="w-7 shrink-0 flex flex-col justify-center py-20 relative pointer-events-none select-none">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 28 300">
+<defs>
+<marker id="arrow-gold" markerheight="6" markerunits="strokeWidth" markerwidth="6" orient="auto" refx="5" refy="3">
+<path d="M0,0 L0,6 L6,3 z" fill="#d8e2ff"></path>
+</marker>
+</defs>
+<!-- R5 Winner directly to R7 lower slot -->
+<path d="M 2 150 C 14 150, 14 190, 24 190" fill="none" marker-end="url(#arrow-gold)" stroke="#d8e2ff" stroke-width="2.5"></path>
+</svg>
+</div>
+<!-- ================= ROUND 6: ĐỊNH HÌNH NHÁNH THẮNG (1 MATCH) ================= -->
+<div class="w-[230px] shrink-0 flex flex-col gap-space-md">
+<!-- Header -->
+<div class="bg-surface-container-low border-t-2 border-primary p-space-sm rounded-lg flex flex-col">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider font-bold">VÒNG 6 (R6)</span>
+<span class="px-1.5 py-0.5 rounded bg-surface-container-highest text-[10px] font-mono text-on-surface-variant">1 TRẬN BO3</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface">Định Hình Nhánh</span>
+<span class="text-[11px] text-on-surface-variant font-mono mt-0.5">Thắng R2(1-0) #1 vs #2</span>
+</div>
+<div class="flex flex-col gap-space-md justify-center flex-1 my-auto">
+<!-- R6 Match 6.1 -->
+<div class="bg-surface-container border border-primary/50 rounded-xl p-space-sm shadow-xl">
+<div class="flex items-center justify-between text-[11px] font-mono text-on-surface-variant mb-1.5 pb-1 border-b border-outline-variant/20">
+<span class="text-primary font-bold">TRẬN 6.1 (BO3)</span>
+<span class="text-primary font-semibold">Tranh Suất CK 1</span>
+</div>
+<!-- Winner straight to Grand Final -->
+<div class="bg-primary/20 border border-primary/50 px-space-xs py-1.5 rounded mb-1.5 flex items-center justify-between">
+<div>
+<span class="font-headline-sm text-[13px] text-primary font-bold block">Đội Thắng R2(1-0) #1</span>
+<span class="text-[9px] text-tertiary font-mono">Bảo toàn mạch toàn thắng</span>
+</div>
+<span class="text-[10px] font-mono text-primary font-bold bg-primary/30 px-1.5 py-0.5 rounded">VÀO CHUNG KẾT (R7)</span>
+</div>
+<!-- Loser to R5 -->
+<div class="bg-surface-container-low border border-outline-variant/40 px-space-xs py-1.5 rounded flex items-center justify-between">
+<div>
+<span class="font-body-sm text-[12px] text-on-surface-variant block">Đội Thắng R2(1-0) #2</span>
+<span class="text-[9px] text-on-surface-variant font-mono">Cơ hội thứ hai tại R5</span>
+</div>
+<span class="text-[10px] font-mono text-error font-bold">XUỐNG R5 ➔</span>
+</div>
+</div>
+<div class="bg-surface-container-low border border-outline-variant/30 rounded-xl p-space-xs">
+<div class="flex items-start gap-1.5 text-on-surface-variant text-[11px] font-mono">
+<span class="material-symbols-outlined text-primary text-[16px] shrink-0 mt-0.5">verified</span>
+<span>Đội thắng R6 tiến thẳng tới Chung Kết Vòng 7 với lợi thế bất bại.</span>
+</div>
+</div>
+</div>
+</div>
+<!-- CONNECTOR 6 -> 7 -->
+<div class="w-7 shrink-0 flex flex-col justify-center py-20 relative pointer-events-none select-none">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 28 300">
+<!-- Upper path to R7 upper slot -->
+<path d="M 2 110 C 14 110, 14 130, 24 130" fill="none" marker-end="url(#arrow-gold)" stroke="#d8e2ff" stroke-width="2.5"></path>
+</svg>
+</div>
+<!-- ================= ROUND 7: CHUNG KẾT TỐI CAO & VINH QUANG ================= -->
+<div class="w-[270px] shrink-0 flex flex-col gap-space-md">
+<!-- Header -->
+<div class="bg-primary/20 border-t-2 border-primary p-space-sm rounded-lg flex flex-col shadow-[0_0_15px_rgba(76,215,246,0.2)]">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm text-primary uppercase tracking-wider font-bold">VÒNG 7 (R7)</span>
+<span class="px-2 py-0.5 rounded bg-primary text-on-primary text-[10px] font-mono font-bold animate-pulse">GRAND FINAL</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-primary font-bold">CHUNG KẾT TỔNG</span>
+<span class="text-[11px] text-primary/80 font-mono mt-0.5">Trận Chiến Đoạt Ngai Vàng BO5</span>
+</div>
+<!-- Grand Final Match Card -->
+<div class="flex flex-col gap-space-md justify-center flex-1 my-auto">
+<div class="bg-surface-container-high border-2 border-primary/50 rounded-2xl p-space-md shadow-2xl relative overflow-hidden">
+<div class="absolute -right-8 -bottom-8 w-32 h-32 bg-primary/10 rounded-full blur-2xl pointer-events-none"></div>
+<div class="flex items-center justify-between mb-space-sm pb-1 border-b border-outline-variant/30">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-secondary-fixed text-[18px]">crown</span>
+<span class="font-label-sm text-[11px] text-secondary-fixed font-bold uppercase">NGÔI VƯƠNG TỐI CAO</span>
+</div>
+<span class="font-label-sm text-[11px] text-primary font-mono font-bold">BO5</span>
+</div>
+<!-- Winner Slot (Hạng Nhất - Vô Địch) -->
+<div class="bg-gradient-to-r from-primary/30 to-primary/10 border border-primary p-space-sm rounded-xl mb-2 flex items-center justify-between shadow-lg">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-primary text-on-primary flex items-center justify-center font-bold text-sm shadow-[0_0_10px_#4cd7f6]">
+<span class="material-symbols-outlined text-[18px]">emoji_events</span>
+</div>
+<div>
+<span class="font-headline-sm text-[13px] text-primary font-bold block">Đội Thắng R6</span>
+<span class="text-[10px] text-tertiary font-mono font-bold uppercase">QUÁN QUÂN VÔ ĐỊCH</span>
+</div>
+</div>
+<span class="text-[11px] font-mono text-primary font-bold bg-surface-container-lowest px-2 py-1 rounded border border-primary/40">HẠNG 1</span>
+</div>
+<!-- Loser Slot (Hạng Nhì - Á Quân) -->
+<div class="bg-surface-container border border-outline-variant/40 p-space-sm rounded-xl flex items-center justify-between opacity-90">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-surface-container-highest text-on-surface flex items-center justify-center font-bold text-sm">
+<span class="material-symbols-outlined text-[18px]">military_tech</span>
+</div>
+<div>
+<span class="font-headline-sm text-[13px] text-on-surface font-bold block">Đội Thắng R5</span>
+<span class="text-[10px] text-on-surface-variant font-mono uppercase">Á QUÂN GIẢI ĐẤU</span>
+</div>
+</div>
+<span class="text-[11px] font-mono text-on-surface-variant bg-surface-container-lowest px-2 py-1 rounded border border-outline-variant/30">HẠNG 2</span>
+</div>
+</div>
+<!-- Final Podium Outcome Affirmation Banner -->
+<div class="bg-surface-container-lowest border border-secondary-fixed/30 rounded-xl p-space-sm flex items-center gap-space-sm shadow-md">
+<span class="material-symbols-outlined text-secondary-fixed text-[30px] shrink-0">trophy</span>
+<div>
+<span class="font-label-sm text-[11px] text-secondary-fixed font-bold uppercase block">ĐÍCH ĐẾN GIẢI ĐẤU</span>
+<p class="text-[12px] text-on-surface leading-tight font-mono">Xác lập trọn vẹn TOP 1, TOP 2, TOP 3 qua quy trình Swiss 7 Round khép kín.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Flow Logic & Rules Blueprint Documentation -->
+<section class="w-full px-gutter py-space-xl bg-surface-container-lowest/90 border-t border-outline-variant/20" id="structure">
+<div class="max-w-[1780px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+<!-- Card 1: Khái niệm & Nguyên tắc -->
+<div class="bg-surface-container rounded-xl p-space-md border border-outline-variant/30 flex flex-col gap-2">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-[22px]">hub</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Cơ Chế Khung Trừu Tượng</h3>
+</div>
+<p class="text-body-sm text-on-surface-variant">
+        Khung sơ đồ không gắn cứng với bất kỳ đội tuyển cụ thể nào. Mọi vị trí được mô hình hóa thành <strong>Slot Hạt Giống (1-8)</strong> và chuyển dịch hoàn toàn dựa trên kết quả ván đấu <em>(Thắng tiến nhánh trên, Thua rẽ nhánh dưới)</em>.
+      </p>
+<div class="mt-auto pt-2 border-t border-outline-variant/20 flex items-center justify-between text-xs font-mono text-tertiary">
+<span>Hệ thống: Swiss Adaptive Bracket</span>
+<span>8 Tuyển / 7 Giai Đoạn</span>
+</div>
+</div>
+<!-- Card 2: Lộ trình Nhánh Sinh Tử -->
+<div class="bg-surface-container rounded-xl p-space-md border border-outline-variant/30 flex flex-col gap-2">
+<div class="flex items-center gap-2 text-error">
+<span class="material-symbols-outlined text-[22px]">alt_route</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Luồng Đào Thải (Elimination Flow)</h3>
+</div>
+<p class="text-body-sm text-on-surface-variant">
+        Các đội để thua ở Vòng 1 rơi xuống nhánh 0-1 tại Vòng 2. Tại đây nếu thua tiếp trận thứ hai sẽ bị loại ngay (Hạng 7-8). Đội thắng ở nhánh 0-1 tiếp tục leo tháp qua Vòng 3, Vòng 4 và Vòng 5 để tranh suất Grand Final.
+      </p>
+<div class="mt-auto pt-2 border-t border-outline-variant/20 flex items-center justify-between text-xs font-mono text-error">
+<span>2 Trận Thua = Bị Loại</span>
+<span>Exit Points: R2, R3, R4</span>
+</div>
+</div>
+<!-- Card 3: Phân Định Thứ Hạng Cuối Cùng -->
+<div class="bg-surface-container rounded-xl p-space-md border border-outline-variant/30 flex flex-col gap-2">
+<div class="flex items-center gap-2 text-secondary-fixed">
+<span class="material-symbols-outlined text-[22px]">military_tech</span>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Định Hình Bục Podium</h3>
+</div>
+<p class="text-body-sm text-on-surface-variant">
+        Vòng 5 xác định đội <strong>Hạng Ba (Top 3)</strong>. Vòng 6 và Vòng 5 đồng thời cung cấp hai đội mạnh nhất bước vào Vòng 7 (Chung Kết Tổng) để tranh đoạt danh hiệu <strong>Vô Địch (Top 1)</strong> và <strong>Á Quân (Top 2)</strong>.
+      </p>
+<div class="mt-auto pt-2 border-t border-outline-variant/20 flex items-center justify-between text-xs font-mono text-secondary-fixed">
+<span>Phân cấp: Top 1, Top 2, Top 3</span>
+<span>BO5 Quyết Định</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</main><footer class="w-full bg-surface-container-lowest py-space-lg border-t border-outline-variant/30 shadow-[0_-1px_12px_rgba(0,0,0,0.3)]"><div class="w-full px-gutter flex flex-col md:flex-row items-center justify-between gap-space-md"><div class="flex items-center gap-space-sm"><span class="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_#4cd7f6]"></span><span class="font-headline-sm text-headline-sm text-on-surface">SWISS SYSTEM 8-TEAM BRACKET TEMPLATE</span><span class="font-label-sm text-label-sm text-on-surface-variant font-mono">GENERIC FLOWCHART SPECIFICATION</span></div><div class="flex items-center gap-space-lg"><span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-mono">7 Rounds • Double Branch Flow • BO1 / BO3 / BO5</span><span class="font-label-sm text-label-sm text-on-surface-variant font-mono">© 2025 Esports Federation</span></div></div></footer></body></html>

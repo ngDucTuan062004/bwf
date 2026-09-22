@@ -22,6 +22,35 @@ const editBtn = document.getElementById("edit-toggle-btn");
 const bannerWrap = document.getElementById("banner-wrap");
 const fetchWarningWrap = document.getElementById("fetch-warning-wrap");
 
+/* ================================================================
+   THEME — dark/light mode (lưu localStorage, mặc định dark)
+   ================================================================ */
+function getTheme() {
+	return localStorage.getItem("bwf-theme") === "light" ? "light" : "dark";
+}
+
+function setTheme(t) {
+	const theme = t === "light" ? "light" : "dark";
+	localStorage.setItem("bwf-theme", theme);
+	document.documentElement.setAttribute("data-theme", theme);
+	const btn = document.getElementById("theme-toggle-btn");
+	if (btn) btn.textContent = theme === "dark" ? "☀️" : "🌙";
+	return theme;
+}
+
+function initTheme() {
+	const theme = getTheme();
+	document.documentElement.setAttribute("data-theme", theme);
+	const btn = document.getElementById("theme-toggle-btn");
+	if (btn) {
+		btn.textContent = theme === "dark" ? "☀️" : "🌙";
+		btn.addEventListener("click", function () {
+			setTheme(getTheme() === "dark" ? "light" : "dark");
+		});
+	}
+	return theme;
+}
+
 /* ---------- tiny DOM helper ---------- */
 function el(tag, attrs, children) {
 	attrs = attrs || {};
@@ -260,12 +289,24 @@ function applySeedToContent(content, seedContent) {
 		content.label = seedContent.label;
 		content.format = seedContent.format;
 		content.scoringNote = seedContent.scoringNote;
-		content.participants = (seedContent.participants || []).slice();
 		content.matches = (seedContent.matches || []).slice();
-		content.unassignedPairs = (seedContent.unassignedPairs || []).slice(); // seed thiếu field → []
+		content.seedFilled = (seedContent.seedFilled || []).slice(); // reset seed → R1 không tự tái tạo
+		/* Custom stage 8 đội: reset đưa toàn bộ cặp về danh sách chờ (giống nội dung đơn) — bracket trống */
+		const seedIsCustom = seedContent.format === "swiss" &&
+			(seedContent.customStage === true || (seedContent.participants || []).length === 8);
+		if (seedIsCustom) {
+			content.customStage = true;
+			content.participants = [];
+			content.unassignedPairs = (seedContent.participants || []).slice();
+		} else {
+			content.participants = (seedContent.participants || []).slice();
+			content.unassignedPairs = (seedContent.unassignedPairs || []).slice(); // seed thiếu field → []
+			content.customStage = seedContent.customStage === true;
+		}
 	} else {
 		content.matches = [];
 		content.unassignedPairs = [];
+		content.seedFilled = [];
 	}
 }
 
@@ -294,9 +335,10 @@ function isSwissStage(stage) {
 	return /^Vòng (Swiss )?\d+$/.test(stage || "");
 }
 
-/* Nhóm 8 đội đúng theo thể thức custom (aaa.md) — chỉ áp dụng cho format "swiss" đủ 8 cặp */
+/* Nhóm 8 đội đúng theo thể thức custom (aaa.md) — chỉ áp dụng cho format "swiss".
+   Marker customStage (đặt khi reset/seed) giữ nhận diện kể cả khi participants rỗng (đã về danh sách chờ). */
 function isCustomStage(content) {
-	return content.format === "swiss" && (content.participants || []).length === 8;
+	return content.format === "swiss" && (content.customStage === true || (content.participants || []).length === 8);
 }
 
 function allParticipants(content) {
@@ -589,10 +631,13 @@ function renderStandingsSection(content) {
 		} : null;
 
 		if (isCustomStage(content)) {
-			/* Nhóm 8 đội: xếp hạng tùy chỉnh thay bảng standings + nhánh; không dùng pair order */
-			const state = CustomStage.computeFixedState(content.participants || [], swissMatches);
+			/* Nhóm 6/8 đội: xếp hạng tùy chỉnh thay bảng standings + nhánh; không dùng pair order */
+			const participants = content.participants || [];
+			const state = participants.length === 6
+				? CustomStage.computeFixedState6(participants, swissMatches)
+				: CustomStage.computeFixedState(participants, swissMatches);
 			if (!hasMatches) {
-				card.appendChild(el("p", { class: "standings-note" }, "Chưa có trận nào — kéo 8 đội vào ô seed ở sơ đồ bên dưới để bắt đầu"));
+				card.appendChild(el("p", { class: "standings-note" }, "Chưa có trận nào — xếp " + (participants.length === 6 ? "6" : "8") + " cặp từ danh sách chờ vào ô Hạt Giống ở sơ đồ bên dưới để bắt đầu"));
 			} else {
 				card.appendChild(renderCustomRanking(state));
 			}
@@ -609,7 +654,7 @@ function renderStandingsSection(content) {
 			card.appendChild(el("p", { class: "standings-note" }, "Xếp theo: Thắng → Hiệu số séc → Hiệu số điểm. Đội nghỉ vòng (bye) khi không thể ghép cặp tránh tái đấu."));
 			card.appendChild(renderSwissBranches(rows));
 		}
-		if (editMode && hasMatches) {
+		if (editMode && hasMatches && !isCustomStage(content)) {
 			const input = el("input", { type: "text", placeholder: "Tên cặp đấu mới" });
 			const addRow = el("div", { class: "add-player-row" }, [
 				input,
@@ -911,55 +956,92 @@ function renderCustomRanking(state) {
 }
 
 function renderBracketLegend() {
-	return el("div", { class: "bracket-legend" }, [
-		el("span", { text: "🟢 Thắng đi tiếp" }),
-		el("span", { text: "🔴 Thua xuống nhánh dưới" }),
-		el("span", { text: "⚪ Thua bị loại" }),
-		el("span", { text: "🥇 Chung kết" }),
+	return el("div", { class: "bracket-legend fixed-legend" }, [
+		el("span", { class: "legend-item win" }, [
+			el("span", { class: "legend-arrow win", text: "━━►" }),
+			el("span", { text: "Thắng đi tiếp" }),
+		]),
+		el("span", { class: "legend-item loss" }, [
+			el("span", { class: "legend-arrow loss", text: "╌╌❯" }),
+			el("span", { text: "Thua xuống nhánh dưới" }),
+		]),
+		el("span", { class: "legend-item out" }, [
+			el("span", { class: "legend-arrow out", text: "✕" }),
+			el("span", { text: "Thua bị loại" }),
+		]),
+		el("span", { class: "legend-item gold" }, [
+			el("span", { class: "legend-arrow gold", text: "═══►" }),
+			el("span", { text: "Chung kết" }),
+		]),
 	]);
 }
 
 function renderCustomBracket(content) {
+	const participants = content.participants || [];
+	if (participants.length === 6) return renderCustomBracket6(content);
+
 	const section = el("div", { class: "swiss-bracket-card fixed-bracket" });
 	section.appendChild(el("h3", { class: "swiss-bracket-title", text: "Sơ đồ thi đấu — nhóm 8 đội (14 trận cố định)" }));
 	section.appendChild(renderBracketLegend());
 
-	const participants = content.participants || [];
 	const customMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
 	const state = CustomStage.computeFixedState(participants, customMatches);
 	const hasR1 = customMatches.some(function (m) { return m.pos && m.pos.indexOf("R1.") === 0; });
 	const seedMode = editMode && !hasR1;
 
 	if (seedMode) {
-		section.appendChild(renderSeedPool(content, participants));
+		section.appendChild(renderSeedPool(content));
 	}
 
 	const track = el("div", { class: "swiss-bracket-track fixed-track", "data-bracket-track": "1" });
-	const headers = { 1: "Vòng 1 — Seed", 2: "Vòng 2", 3: "Vòng 3", 4: "Vòng 4", 5: "Tranh Hạng 3", 6: "Vòng 6", 7: "Chung kết" };
+	const headers = {
+		1: ["VÒNG 1 (R1)", "Khai Mạc (0-0)", "4 TRẬN BO3", "8 Slot hạt giống bắt đầu"],
+		2: ["VÒNG 2 (R2)", "Phân Nhánh 1-0 / 0-1", "4 TRẬN BO3", "Tách 2 nhánh: Thắng & Sinh Tử"],
+		3: ["VÒNG 3 (R3)", "Vòng Đào Thải", "2 TRẬN BO3", "Thua R2(1-0) vs Thắng R2(0-1)"],
+		4: ["VÒNG 4 (R4)", "Bán Kết Nhánh Thua", "1 TRẬN BO3", "Thắng R3 #1 vs Thắng R3 #2"],
+		5: ["VÒNG 5 (R5)", "Chung Kết Nhánh Thua", "1 TRẬN BO3", "Thắng R4 vs Thua R6"],
+		6: ["VÒNG 6 (R6)", "Định Hình Nhánh", "1 TRẬN BO3", "Thắng R2(1-0) #1 vs #2"],
+		7: ["VÒNG 7 (R7)", "CHUNG KẾT TỔNG", "GRAND FINAL", "Trận Chiến Đoạt Ngai Vàng BO5"],
+	};
 	[1, 2, 3, 4, 5, 6, 7].forEach(function (r) {
+		const h = headers[r];
 		const col = el("div", { class: "swiss-round fixed-round r" + r });
-		col.appendChild(el("h4", { class: "swiss-round-head", text: headers[r] }));
+		col.appendChild(el("div", { class: "fixed-round-head" }, [
+			el("span", { class: "fixed-round-code", text: h[0] }),
+			el("span", { class: "fixed-round-badge", text: h[2] }),
+		]));
+		col.appendChild(el("span", { class: "fixed-round-title", text: h[1] }));
+		col.appendChild(el("span", { class: "fixed-round-sub", text: h[3] }));
 
 		if (r === 2) {
-			col.appendChild(el("div", { class: "fixed-branch-label win", text: "Nhánh Thắng" }));
+			const winGroup = el("div", { class: "fixed-branch-group win" });
+			winGroup.appendChild(el("div", { class: "fixed-branch-label win", text: "Nhánh Thắng (1-0)" }));
 			state.bracket.filter(function (b) { return b.pos === "R2.1" || b.pos === "R2.2"; }).forEach(function (b) {
-				col.appendChild(buildFixedMatchNode(content, b, state.records, seedMode));
+				winGroup.appendChild(buildFixedMatchNode(content, b, state.records, seedMode));
 			});
-			col.appendChild(el("div", { class: "fixed-branch-label loss", text: "Nhánh Thua" }));
+			col.appendChild(winGroup);
+
+			const lossGroup = el("div", { class: "fixed-branch-group loss" });
+			lossGroup.appendChild(el("div", { class: "fixed-branch-label loss", text: "Nhánh Thua (0-1)" }));
 			state.bracket.filter(function (b) { return b.pos === "R2.3" || b.pos === "R2.4"; }).forEach(function (b) {
-				col.appendChild(buildFixedMatchNode(content, b, state.records, seedMode));
+				lossGroup.appendChild(buildFixedMatchNode(content, b, state.records, seedMode));
 			});
-			col.appendChild(el("div", { class: "fixed-callout danger", text: "Hạng 7-8" }));
+			col.appendChild(lossGroup);
+
+			col.appendChild(el("div", { class: "fixed-callout danger", text: "ĐIỂM THOÁT • HẠNG 7-8" }));
 		} else {
 			state.bracket.filter(function (b) { return b.round === r; }).forEach(function (b) {
 				col.appendChild(buildFixedMatchNode(content, b, state.records, seedMode));
 			});
-			if (r === 3) col.appendChild(el("div", { class: "fixed-callout danger", text: "Hạng 5-6" }));
-			if (r === 4) col.appendChild(el("div", { class: "fixed-callout danger", text: "Hạng 4" }));
-			if (r === 5 && state.phase === "complete") col.appendChild(el("div", { class: "fixed-callout gold", text: "🥉 Hạng 3" }));
-			if (r === 7 && state.phase === "complete") col.appendChild(el("div", { class: "fixed-callout gold", text: "🏆 Hạng 1 · 🥈 Hạng 2" }));
+			if (r === 3) col.appendChild(el("div", { class: "fixed-callout danger", text: "ĐIỂM THOÁT • HẠNG 5-6" }));
+			if (r === 4) col.appendChild(el("div", { class: "fixed-callout danger", text: "ĐIỂM THOÁT • HẠNG 4" }));
+			if (r === 5 && state.phase === "complete") col.appendChild(el("div", { class: "fixed-callout gold", text: "🥉 HẠNG 3" }));
+			if (r === 7 && state.phase === "complete") col.appendChild(el("div", { class: "fixed-callout gold", text: "🏆 HẠNG 1 · 🥈 HẠNG 2" }));
 		}
 		track.appendChild(col);
+		if (r < 7) {
+			track.appendChild(el("div", { class: "fixed-connector", "data-gap": r + "-" + (r + 1) }));
+		}
 	});
 
 	section.appendChild(track);
@@ -969,18 +1051,121 @@ function renderCustomBracket(content) {
 	return section;
 }
 
-function buildFixedMatchNode(content, b, records, seedMode) {
-	const node = el("div", { class: "swiss-match fixed-match", "data-pos": b.pos, "data-round": b.round });
-	node.appendChild(el("span", { class: "fixed-bo3", text: "BO3" }));
+/* Nhóm 6 đội — bracket linh hoạt 10 trận, 5 vòng. Case A/B do trận chéo R2.1 quyết định. */
+function renderCustomBracket6(content) {
+	const section = el("div", { class: "swiss-bracket-card fixed-bracket" });
+	const participants = content.participants || [];
+	const customMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
+	const state = CustomStage.computeFixedState6(participants, customMatches);
+	const caseId = state.caseId || "A";
+	const hasR1 = customMatches.some(function (m) { return m.pos && m.pos.indexOf("R1.") === 0; });
+	const seedMode = editMode && !hasR1;
 
+	section.appendChild(el("h3", { class: "swiss-bracket-title" }, [
+		el("span", { text: "Sơ đồ thi đấu — nhóm 6 đội (10 trận linh hoạt)" }),
+		el("span", { class: "fixed-case-badge " + (caseId === "A" ? "a" : "b"), text: "Case " + caseId }),
+	]));
+	section.appendChild(renderBracketLegend());
+
+	if (seedMode) section.appendChild(renderSeedPool(content, 6));
+
+	const track = el("div", { class: "swiss-bracket-track fixed-track", "data-bracket-track": "1" });
+	const headers = {
+		1: ["VÒNG 1 (R1)", "Khai Mạc (0-0)", "3 TRẬN BO3", "6 Slot hạt giống bắt đầu"],
+		2: ["VÒNG 2 (R2)", "Phân Nhánh 1-0 / 0-1", "3 TRẬN BO3", "1 trận chéo + nhánh Thắng & Sinh Tử"],
+		3: ["VÒNG 3 (R3)", "Vòng Đào Thải", "2 TRẬN BO3", caseId === "A" ? "1-1 vs 1-1 ×2 — thua loại" : "2-0 vs 2-0 · 1-1 vs 1-1"],
+		4: ["VÒNG 4 (R4)", "Tranh Vé Chung Kết", "1 TRẬN BO3", "2-1 vs 2-1 — thua hạng 3"],
+		5: ["VÒNG 5 (R5)", "CHUNG KẾT TỔNG", "GRAND FINAL", "Trận Chiến Đoạt Ngai Vàng BO5"],
+	};
+	[1, 2, 3, 4, 5].forEach(function (r) {
+		const h = headers[r];
+		const col = el("div", { class: "swiss-round fixed-round r" + r });
+		col.appendChild(el("div", { class: "fixed-round-head" }, [
+			el("span", { class: "fixed-round-code", text: h[0] }),
+			el("span", { class: "fixed-round-badge", text: h[2] }),
+		]));
+		col.appendChild(el("span", { class: "fixed-round-title", text: h[1] }));
+		col.appendChild(el("span", { class: "fixed-round-sub", text: h[3] }));
+
+		if (r === 2) {
+			const crossGroup = el("div", { class: "fixed-branch-group cross" });
+			crossGroup.appendChild(el("div", { class: "fixed-branch-label cross", text: "Trận Chéo (1-0 vs 0-1)" }));
+			state.bracket.filter(function (b) { return b.pos === "R2.1"; }).forEach(function (b) {
+				crossGroup.appendChild(buildFixedMatchNode(content, b, state.records, seedMode, state.structure));
+			});
+			col.appendChild(crossGroup);
+
+			const winGroup = el("div", { class: "fixed-branch-group win" });
+			winGroup.appendChild(el("div", { class: "fixed-branch-label win", text: "Nhánh Thắng (1-0)" }));
+			state.bracket.filter(function (b) { return b.pos === "R2.2"; }).forEach(function (b) {
+				winGroup.appendChild(buildFixedMatchNode(content, b, state.records, seedMode, state.structure));
+			});
+			col.appendChild(winGroup);
+
+			const lossGroup = el("div", { class: "fixed-branch-group loss" });
+			lossGroup.appendChild(el("div", { class: "fixed-branch-label loss", text: "Nhánh Thua (0-1)" }));
+			state.bracket.filter(function (b) { return b.pos === "R2.3"; }).forEach(function (b) {
+				lossGroup.appendChild(buildFixedMatchNode(content, b, state.records, seedMode, state.structure));
+			});
+			col.appendChild(lossGroup);
+
+			col.appendChild(el("div", { class: "fixed-callout danger", text: caseId === "A" ? "ĐIỂM THOÁT • HẠNG 6" : "ĐIỂM THOÁT • HẠNG 5-6" }));
+		} else {
+			state.bracket.filter(function (b) { return b.round === r; }).forEach(function (b) {
+				col.appendChild(buildFixedMatchNode(content, b, state.records, seedMode, state.structure));
+			});
+			if (r === 3) col.appendChild(el("div", { class: "fixed-callout danger", text: caseId === "A" ? "ĐIỂM THOÁT • HẠNG 4-5" : "ĐIỂM THOÁT • HẠNG 4" }));
+			if (r === 4 && state.phase === "complete") col.appendChild(el("div", { class: "fixed-callout gold", text: "🥉 HẠNG 3" }));
+			if (r === 5 && state.phase === "complete") col.appendChild(el("div", { class: "fixed-callout gold", text: "🏆 HẠNG 1 · 🥈 HẠNG 2" }));
+		}
+		track.appendChild(col);
+		if (r < 5) track.appendChild(el("div", { class: "fixed-connector", "data-gap": r + "-" + (r + 1) }));
+	});
+
+	section.appendChild(track);
+	requestAnimationFrame(function () {
+		drawFixedConnectors(track, state.bracket);
+	});
+	return section;
+}
+
+/* Trận kế tiếp nhận feed từ pos theo loại W/L — dùng cho flow hint + tag THUA/BỊ LOẠI.
+   structure mặc định = STRUCTURE (8 đội); 6 đội truyền structure đã chọn. */
+function fixedFeedDest(pos, type, structure) {
+	structure = structure || CustomStage.STRUCTURE || [];
+	for (let i = 0; i < structure.length; i++) {
+		const feeds = structure[i].feeds || [];
+		for (let j = 0; j < feeds.length; j++) {
+			if (feeds[j][0] === type && feeds[j][1] === pos) return structure[i].pos;
+		}
+	}
+	return null;
+}
+
+function buildFixedMatchNode(content, b, records, seedMode, structure) {
+	const node = el("div", { class: "swiss-match fixed-match", "data-pos": b.pos, "data-round": b.round });
 	const isSeedRound = seedMode && b.round === 1;
+
+	/* Header trận: mã trận + badge BO3 (kiểu design) */
+	node.appendChild(el("div", { class: "fixed-match-head" }, [
+		el("span", { class: "fixed-match-code", text: "TRẬN " + b.pos.replace("R", "") }),
+		el("span", { class: "fixed-bo3", text: "BO3" }),
+	]));
 
 	b.feeds.forEach(function (feed, i) {
 		const team = b.teams[i];
 		if (isSeedRound) {
 			const seedNum = feed[1];
-			const slot = el("div", { class: "seed-slot" + (team ? " filled" : ""), "data-seed": seedNum });
-			slot.appendChild(el("span", { class: "seed-slot-name", text: team ? team : "Seed " + seedNum }));
+			const filled = !!(content.seedFilled || [])[seedNum - 1];
+			const slot = el("div", { class: "seed-slot" + (filled ? " filled" : ""), "data-seed": seedNum, "data-side": String(i) });
+			slot.appendChild(el("span", { class: "seed-num", text: String(seedNum) }));
+			slot.appendChild(el("span", { class: "seed-slot-name", text: filled && team ? team : "Hạt Giống " + seedNum }));
+			if (filled) {
+				slot.appendChild(el("button", {
+					class: "seed-unassign", type: "button", title: "Bỏ xếp hạt giống", text: "↩",
+					onclick: function (e) { e.stopPropagation(); unassignSeed(content, seedNum); },
+				}));
+			}
 			slot.addEventListener("dragover", function (e) { e.preventDefault(); slot.classList.add("dropzone-active"); });
 			slot.addEventListener("dragleave", function () { slot.classList.remove("dropzone-active"); });
 			slot.addEventListener("drop", function (e) {
@@ -990,20 +1175,51 @@ function buildFixedMatchNode(content, b, records, seedMode) {
 				dragPlayerName = null;
 				if (name) assignSeed(content, seedNum, name);
 			});
+			slot.addEventListener("click", function () {
+				if (selectedPoolPlayer) { const name = selectedPoolPlayer; selectedPoolPlayer = null; assignSeed(content, seedNum, name); }
+			});
 			node.appendChild(slot);
 		} else {
 			const winner = b.match ? CustomStage.matchWinner(b.match) : null;
 			const rec = (records && team && records[team]) || { w: 0, l: 0 };
-			const side = el("div", { class: "swiss-side" + (winner === team ? " winner" : (winner ? " loser" : "")), "data-team-side": team || "" });
-			if (team) {
+			const isEmptyR1 = b.round === 1 && !b.match; /* R1 chưa có trận → hiện trống, không vẽ cặp từ seed */
+			const side = el("div", {
+				class: "swiss-side fixed-slot" + (winner === team ? " winner" : (winner ? " loser" : "")),
+				"data-team-side": isEmptyR1 ? "" : (team || ""),
+				"data-side": String(i),
+			});
+			/* Badge số hạt giống (chỉ R1 — feed loại S) */
+			if (feed[0] === "S") {
+				side.appendChild(el("span", { class: "fixed-slot-seed", text: String(feed[1]) }));
+			}
+			if (team && !isEmptyR1) {
 				side.appendChild(el("button", { class: "swiss-side-name link-name", type: "button", text: team, onclick: function () { showTeamHistory(content, team); } }));
 				side.appendChild(el("span", { class: "swiss-record", text: rec.w + "-" + rec.l }));
+				if (winner) {
+					const isWin = winner === team;
+					const hasLossDest = !!fixedFeedDest(b.pos, "L", structure);
+					const tag = isWin ? (b.round === 7 ? "HẠNG 1" : "THẮNG") : (hasLossDest ? "THUA" : (b.round === 7 ? "HẠNG 2" : "BỊ LOẠI"));
+					side.appendChild(el("span", {
+						class: "fixed-side-tag " + (isWin ? "win" : (hasLossDest ? "loss" : "out")),
+						text: tag,
+					}));
+				}
 			} else {
-				side.appendChild(el("span", { class: "swiss-side-name seed-placeholder", text: b.round === 1 ? "Seed " + feed[1] : "Chờ kết quả" }));
+				side.appendChild(el("span", { class: "swiss-side-name seed-placeholder", text: b.round === 1 ? "Hạt Giống " + feed[1] : "Chờ kết quả" }));
 			}
 			node.appendChild(side);
 		}
 	});
+
+	/* Flow hint: ▲ Thắng ➔ đâu / ▼ Thua ➔ đâu */
+	const wDest = fixedFeedDest(b.pos, "W", structure);
+	const lDest = fixedFeedDest(b.pos, "L", structure);
+	if (wDest || lDest) {
+		const parts = [];
+		if (wDest) parts.push("▲ Thắng ➔ " + wDest);
+		if (lDest) parts.push("▼ Thua ➔ " + lDest);
+		node.appendChild(el("div", { class: "fixed-flow-hint", text: parts.join(" · ") }));
+	}
 
 	if (editMode && b.match && b.match.p1 && b.match.p2) {
 		node.classList.add("clickable");
@@ -1016,41 +1232,106 @@ function buildFixedMatchNode(content, b, records, seedMode) {
 	return node;
 }
 
-function renderSeedPool(content, participants) {
-	const wrap = el("div", { class: "seed-pool" });
-	wrap.appendChild(el("p", { class: "pool-hint" }, "Kéo 8 đội vào ô seed (1-8) để xếp hạt giống — R1 tự sinh khi đủ 8."));
-	participants.forEach(function (name) {
-		const chip = el("span", { class: "seed-chip", "data-team": name, text: name });
-		chip.setAttribute("draggable", "true");
-		chip.addEventListener("dragstart", function (e) {
-			dragPlayerName = name;
-			e.dataTransfer.setData("text/plain", name);
-			e.dataTransfer.effectAllowed = "move";
+function renderSeedPool(content, size) {
+	size = size || 8;
+	const pool = content.unassignedPairs || [];
+	const wrap = el("div", { class: "pool-card seed-pool" });
+	wrap.appendChild(el("div", { class: "pool-head" }, [
+		el("h3", { text: "Danh sách chờ — xếp hạt giống (1-" + size + ")" }),
+		el("span", { class: "pool-count", text: pool.length + " CẶP chưa xếp" }),
+	]));
+
+	if (editMode) {
+		wrap.appendChild(el("p", { class: "pool-hint" },
+			"Kéo (hoặc chạm để chọn rồi bấm ô) từng cặp vào ô Hạt Giống 1-" + size + " — R1 tự sinh khi đủ " + size + "."));
+	}
+
+	const chipsWrap = el("div", { class: "pool-chips" });
+	if (!pool.length) {
+		chipsWrap.appendChild(el("p", { class: "empty", style: "padding:4px 2px;" }, "Đã xếp đủ " + size + " cặp vào hạt giống."));
+	} else {
+		pool.forEach(function (name) {
+			const chip = el("span", {
+				class: "pool-chip" + (selectedPoolPlayer === name ? " selected" : ""),
+				"data-team": name, text: name,
+			});
+			if (editMode) {
+				chip.setAttribute("draggable", "true");
+				chip.addEventListener("dragstart", function (e) {
+					dragPlayerName = name;
+					e.dataTransfer.setData("text/plain", name);
+					e.dataTransfer.effectAllowed = "move";
+				});
+				chip.addEventListener("click", function () {
+					selectedPoolPlayer = (selectedPoolPlayer === name) ? null : name;
+					renderAll();
+				});
+			}
+			chipsWrap.appendChild(chip);
 		});
-		wrap.appendChild(chip);
-	});
+	}
+	wrap.appendChild(chipsWrap);
 	return wrap;
 }
 
 function assignSeed(content, seedNum, team) {
-	const participants = (content.participants || []).slice();
-	const idx = participants.indexOf(team);
-	if (idx !== -1) participants.splice(idx, 1);
-	participants.splice(seedNum - 1, 0, team);
-	content.participants = participants;
+	if (!content.participants) content.participants = [];
+	if (!content.unassignedPairs) content.unassignedPairs = [];
 	if (!content.seedFilled) content.seedFilled = [];
+	/* Rời danh sách chờ (model mới) + rời vị trí seed cũ (state cũ / đổi seed) */
+	const pi = content.unassignedPairs.indexOf(team);
+	if (pi !== -1) content.unassignedPairs.splice(pi, 1);
+	const oi = content.participants.indexOf(team);
+	if (oi !== -1) content.participants.splice(oi, 1);
+	/* Model mới (sau reset): ô seed rải rác → pad "" rồi gán thẳng vào đúng vị trí.
+	   State cũ (đặc, chưa reset): đổi seed = xoá rồi chèn đúng vị trí (shift). */
+	if (content.participants.indexOf("") !== -1 || content.participants.length < seedNum) {
+		while (content.participants.length < seedNum) content.participants.push("");
+		content.participants[seedNum - 1] = team;
+	} else {
+		content.participants.splice(seedNum - 1, 0, team);
+	}
 	content.seedFilled[seedNum - 1] = true;
 	saveData();
 	renderAll();
 	ensureR1(content);
 }
 
+function unassignSeed(content, seedNum) {
+	if (!content.participants) content.participants = [];
+	if (!content.seedFilled) content.seedFilled = [];
+	/* Đã ghi kết quả → không cho gỡ seed (tránh phá bracket đang chảy) */
+	const hasResults = (content.matches || []).some(function (m) {
+		return m.pos && (m.winner || (m.sets && m.sets.length));
+	});
+	if (hasResults) return false;
+	const team = content.participants[seedNum - 1];
+	/* Xoá các trận tự sinh chưa có kết quả (R1…) — bracket trở về trạng thái chưa đủ seed */
+	content.matches = (content.matches || []).filter(function (m) { return !m.pos; });
+	if (team && content.unassignedPairs.indexOf(team) === -1) content.unassignedPairs.push(team);
+	content.participants[seedNum - 1] = "";
+	content.seedFilled[seedNum - 1] = false;
+	saveData();
+	renderAll();
+	return true;
+}
+
 function ensureR1(content) {
 	const participants = content.participants || [];
 	const seedFilled = content.seedFilled || [];
 	const hasR1 = (content.matches || []).some(function (m) { return m.pos && m.pos.indexOf("R1.") === 0; });
-	if (participants.length === 8 && seedFilled.length === 8 && seedFilled.every(Boolean) && !hasR1) {
-		[["R1.1", 0, 1], ["R1.2", 2, 3], ["R1.3", 4, 5], ["R1.4", 6, 7]].forEach(function (row) {
+	/* Kích thước nhóm = tổng đội (participants + danh sách chờ) — tránh tạo R1 6 đội
+	   khi mới gán 6/8 seed của nhóm 8 đội. */
+	const total = participants.length + (content.unassignedPairs || []).length;
+	const size = (total === 8 || total === 6) ? total : 0;
+	if (size === 0) return;
+	/* every(Boolean) bỏ qua hole trong mảng thưa (seedFilled sau reset) → phải check tường minh các ô */
+	const allSeedsFilled = seedFilled.length === size && [0, 1, 2, 3, 4, 5, 6, 7].slice(0, size).every(function (i) { return seedFilled[i] === true; });
+	if (allSeedsFilled && !hasR1) {
+		const rows = size === 8
+			? [["R1.1", 0, 1], ["R1.2", 2, 3], ["R1.3", 4, 5], ["R1.4", 6, 7]]
+			: [["R1.1", 0, 1], ["R1.2", 2, 3], ["R1.3", 4, 5]];
+		rows.forEach(function (row) {
 			content.matches.push({ stage: "Vòng 1", pos: row[0], p1: participants[row[1]], p2: participants[row[2]], date: "", time: "", court: "", referee: "", sets: null });
 		});
 		saveData();
@@ -1061,7 +1342,9 @@ function ensureR1(content) {
 function syncFixedBracket(content) {
 	const participants = content.participants || [];
 	const customMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
-	const bracket = CustomStage.buildFixedBracket(participants, customMatches);
+	const bracket = participants.length === 6
+		? CustomStage.buildFixedBracket6(participants, customMatches)
+		: CustomStage.buildFixedBracket(participants, customMatches);
 	let changed = false;
 	bracket.forEach(function (b) {
 		if (b.round === 1) return; /* R1 do seed tạo */
@@ -1102,8 +1385,7 @@ function openFixedResultModal(content, b) {
 		]));
 	}
 	function commitScore() {
-		m.sets = readSetsFromInputs(inputsA, inputsB);
-		if (m.sets) m.winner = null;
+		if (!commitSetsFromInputs(m, inputsA, inputsB)) return;
 		saveData();
 		syncFixedBracket(content);
 		overlay.remove();
@@ -1126,52 +1408,126 @@ function openFixedResultModal(content, b) {
 }
 
 function drawFixedConnectors(track, bracket) {
-	const svg = track.querySelector("svg.swiss-connectors");
-	if (svg) svg.remove();
-	const trackRect = track.getBoundingClientRect();
-	const svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-	svgEl.setAttribute("class", "swiss-connectors");
-	svgEl.setAttribute("width", track.scrollWidth);
-	svgEl.setAttribute("height", track.scrollHeight);
-	svgEl.style.position = "absolute";
-	svgEl.style.top = "0";
-	svgEl.style.left = "0";
-	svgEl.style.pointerEvents = "none";
-
 	const byPos = {};
 	bracket.forEach(function (b) { byPos[b.pos] = b; });
 
+	/* Tập feed có hướng — chỉ vẽ khi trận nguồn đã có kết quả (winner) */
+	const feeds = [];
 	bracket.forEach(function (b) {
-		b.feeds.forEach(function (feed) {
+		b.feeds.forEach(function (feed, i) {
 			if (feed[0] === "S") return; /* seed không có connector */
 			const src = byPos[feed[1]];
 			if (!src) return;
-			const srcNode = track.querySelector('[data-pos="' + cssEscape(src.pos) + '"]');
-			const dstNode = track.querySelector('[data-pos="' + cssEscape(b.pos) + '"]');
-			if (!srcNode || !dstNode) return;
-			const a = srcNode.getBoundingClientRect();
-			const d = dstNode.getBoundingClientRect();
-			const x1 = a.right - trackRect.left, y1 = (a.top + a.bottom) / 2 - trackRect.top;
-			const x2 = d.left - trackRect.left, y2 = (d.top + d.bottom) / 2 - trackRect.top;
-			const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-			path.setAttribute("d", "M " + x1 + " " + y1 + " C " + ((x1 + x2) / 2) + " " + y1 + ", " + ((x1 + x2) / 2) + " " + y2 + ", " + x2 + " " + y2);
-			path.setAttribute("fill", "none");
-			if (b.round === 7) {
-				path.setAttribute("stroke", "var(--gold)");
-				path.setAttribute("stroke-width", "3");
-			} else if (feed[0] === "W") {
-				path.setAttribute("stroke", "var(--win)");
-				path.setAttribute("stroke-width", "2");
-			} else {
-				path.setAttribute("stroke", "var(--danger)");
-				path.setAttribute("stroke-width", "2");
-				path.setAttribute("stroke-dasharray", "5 3");
-			}
-			svgEl.appendChild(path);
+			feeds.push({ type: feed[0], srcPos: src.pos, dstPos: b.pos, dstSide: i, srcRound: src.round, dstRound: b.round });
 		});
 	});
 
-	track.insertBefore(svgEl, track.firstChild);
+	track.querySelectorAll(".fixed-connector").forEach(function (conn) {
+		const gap = (conn.getAttribute("data-gap") || "").split("-");
+		const r1 = Number(gap[0]), r2 = Number(gap[1]);
+		const oldSvg = conn.querySelector("svg");
+		if (oldSvg) conn.removeChild(oldSvg);
+
+		const connRect = conn.getBoundingClientRect();
+		const W = Math.max(connRect.width || 28, 28);
+		const H = Math.max(connRect.height || 100, 100);
+		const svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+		svgEl.setAttribute("class", "fixed-connector-svg");
+		svgEl.setAttribute("width", W);
+		svgEl.setAttribute("height", H);
+		svgEl.style.position = "absolute";
+		svgEl.style.top = "0";
+		svgEl.style.left = "0";
+		svgEl.style.pointerEvents = "none";
+
+		/* Mũi tên marker: xanh (thắng), đỏ (thua), vàng (chung kết) */
+		const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+		[["arrow-win", "#34d399"], ["arrow-loss", "#ff6b5e"], ["arrow-gold", "#fbbf24"]].forEach(function (m) {
+			const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+			marker.setAttribute("id", m[0]);
+			marker.setAttribute("viewBox", "0 0 10 10");
+			marker.setAttribute("refX", "9");
+			marker.setAttribute("refY", "5");
+			marker.setAttribute("markerWidth", "7");
+			marker.setAttribute("markerHeight", "7");
+			marker.setAttribute("orient", "auto-start-reverse");
+			const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+			p.setAttribute("d", "M 0 0 L 10 5 L 0 10 z");
+			p.setAttribute("fill", m[1]);
+			marker.appendChild(p);
+			defs.appendChild(marker);
+		});
+		svgEl.appendChild(defs);
+
+		feeds.forEach(function (f) {
+			/* Feed này có đi qua khe gap này không? */
+			if (f.srcRound > r1 || f.dstRound < r2) return;
+
+			const srcNode = track.querySelector('[data-pos="' + cssEscape(f.srcPos) + '"]');
+			const dstNode = track.querySelector('[data-pos="' + cssEscape(f.dstPos) + '"]');
+			if (!srcNode || !dstNode) return;
+
+			const srcMatch = byPos[f.srcPos].match;
+			const winner = srcMatch ? CustomStage.matchWinner(srcMatch) : null;
+			if (!winner) return; /* chưa có kết quả → chưa vẽ */
+
+			/* Tìm ô nguồn: W → ô thắng, L → ô thua */
+			const srcSides = srcNode.querySelectorAll(".fixed-slot");
+			let srcSide = null;
+			for (let i = 0; i < srcSides.length; i++) {
+				const ts = srcSides[i].getAttribute("data-team-side");
+				if (!ts) continue;
+				if (f.type === "W" && ts === winner) { srcSide = srcSides[i]; break; }
+				if (f.type === "L" && ts !== winner) { srcSide = srcSides[i]; break; }
+			}
+			if (!srcSide) return;
+
+			const dstSides = dstNode.querySelectorAll(".fixed-slot");
+			const dstSide = dstSides[f.dstSide];
+			if (!dstSide) return;
+
+			const srcRect = srcSide.getBoundingClientRect();
+			const dstRect = dstSide.getBoundingClientRect();
+			const y1 = (srcRect.top + srcRect.bottom) / 2 - connRect.top;
+			const y2 = (dstRect.top + dstRect.bottom) / 2 - connRect.top;
+			const x1 = 2, x2 = W - 2;
+			const yMain = y1; /* feed dài chạy ngang ở độ cao ô nguồn (các cột cùng top) */
+
+			let d;
+			if (f.srcRound === r1 && f.dstRound === r2) {
+				d = "M " + x1 + " " + y1 + " C " + ((x1 + x2) / 2) + " " + y1 + ", " + ((x1 + x2) / 2) + " " + y2 + ", " + x2 + " " + y2;
+			} else if (f.srcRound === r1) {
+				d = "M " + x1 + " " + y1 + " L " + x2 + " " + y1;
+			} else if (f.dstRound === r2) {
+				d = "M " + x1 + " " + yMain + " C " + ((x1 + x2) / 2) + " " + yMain + ", " + ((x1 + x2) / 2) + " " + y2 + ", " + x2 + " " + y2;
+			} else {
+				d = "M " + x1 + " " + yMain + " L " + x2 + " " + yMain;
+			}
+
+			const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+			path.setAttribute("d", d);
+			path.setAttribute("fill", "none");
+			if (f.dstRound === 7) {
+				path.setAttribute("stroke", "#fbbf24");
+				path.setAttribute("stroke-width", "3");
+			} else if (f.type === "W") {
+				path.setAttribute("stroke", "#34d399");
+				path.setAttribute("stroke-width", "2");
+			} else {
+				path.setAttribute("stroke", "#ff6b5e");
+				path.setAttribute("stroke-width", "2");
+				path.setAttribute("stroke-dasharray", "5 3");
+			}
+			/* Chỉ mũi tên ở đoạn cuối (kết thúc tại khe này) */
+			if (f.dstRound === r2) {
+				const markerId = f.dstRound === 7 ? "arrow-gold" : (f.type === "W" ? "arrow-win" : "arrow-loss");
+				path.setAttribute("marker-end", "url(#" + markerId + ")");
+			}
+			svgEl.appendChild(path);
+		});
+
+		conn.appendChild(svgEl);
+	});
 }
 
 let bracketResizeTimer = null;
@@ -1265,10 +1621,21 @@ function readSetsFromInputs(inputsA, inputsB) {
 	const sets = [];
 	for (let i = 0; i < 3; i++) {
 		const a = inputsA[i].value.trim(), b = inputsB[i].value.trim();
-		if (a === "" || b === "") break;
+		if (a === "" && b === "") continue; /* bỏ cặp trống hoàn toàn */
+		if (a === "" || b === "") return null; /* cặp nửa chừng → chưa commit */
 		sets.push([Number(a), Number(b)]);
 	}
 	return sets.length ? sets : null;
+}
+
+/* Commit tỉ số: chỉ commit khi đủ cặp hoàn chỉnh; cặp nửa chừng → KHÔNG đụng m.sets
+   (tránh mất số vừa nhập khi tab qua ô kế tiếp). Trả về true nếu đã commit. */
+function commitSetsFromInputs(m, inputsA, inputsB) {
+	const s = readSetsFromInputs(inputsA, inputsB);
+	if (!s) return false;
+	m.sets = s;
+	m.winner = null;
+	return true;
 }
 
 function renderMatchCard(m, content) {
@@ -1331,16 +1698,16 @@ function renderMatchCard(m, content) {
 			el("span", { text: "Séc " + (i + 1) }), ia, el("span", { text: "–" }), ib,
 		]));
 	}
-	function commitScore() { m.sets = readSetsFromInputs(inputsA, inputsB); if (m.sets) m.winner = null; saveData(); renderAll(); }
+	function commitScore() { if (!commitSetsFromInputs(m, inputsA, inputsB)) return; saveData(); if (isCustomStage(content)) syncFixedBracket(content); renderAll(); }
 	inputsA.concat(inputsB).forEach(function (inp) { inp.addEventListener("change", commitScore); });
 	card.appendChild(setsWrap);
 
 	if (isSwiss) {
 		const quickRow = el("div", { class: "edit-row quick-win-row" }, [
 			el("span", { class: "quick-win-label", text: "Chọn đội thắng nhanh:" }),
-			el("button", { class: "btn small", type: "button", onclick: function () { if (!m.p1 || !m.p2) return; m.winner = m.p1; m.sets = null; saveData(); renderAll(); } }, "🏆 " + (m.p1 || "Đội 1")),
-			el("button", { class: "btn small", type: "button", onclick: function () { if (!m.p1 || !m.p2) return; m.winner = m.p2; m.sets = null; saveData(); renderAll(); } }, "🏆 " + (m.p2 || "Đội 2")),
-			el("button", { class: "btn small outline", type: "button", onclick: function () { m.winner = null; m.sets = null; saveData(); renderAll(); } }, "Xoá kết quả"),
+el("button", { class: "btn small", type: "button", onclick: function () { if (!m.p1 || !m.p2) return; m.winner = m.p1; m.sets = null; saveData(); if (isCustomStage(content)) syncFixedBracket(content); renderAll(); } }, "🏆 " + (m.p1 || "Đội 1")),
+		el("button", { class: "btn small", type: "button", onclick: function () { if (!m.p1 || !m.p2) return; m.winner = m.p2; m.sets = null; saveData(); if (isCustomStage(content)) syncFixedBracket(content); renderAll(); } }, "🏆 " + (m.p2 || "Đội 2")),
+		el("button", { class: "btn small outline", type: "button", onclick: function () { m.winner = null; m.sets = null; saveData(); if (isCustomStage(content)) syncFixedBracket(content); renderAll(); } }, "Xoá kết quả"),
 		]);
 		card.appendChild(quickRow);
 	}
@@ -1360,7 +1727,7 @@ function renderMatchCard(m, content) {
 	function commitMeta() { m.date = dateInput.value; m.time = timeInput.value; m.court = courtInput.value; m.referee = refInput.value; saveData(); }
 	[dateInput, timeInput, courtInput, refInput].forEach(function (inp) { inp.addEventListener("change", commitMeta); });
 
-	function commitPlayers() { m.p1 = p1Input.value.trim() || m.p1; m.p2 = p2Input.value.trim() || m.p2; if (m.winner && m.winner !== m.p1 && m.winner !== m.p2) m.winner = null; saveData(); renderAll(); }
+	function commitPlayers() { m.p1 = p1Input.value.trim() || m.p1; m.p2 = p2Input.value.trim() || m.p2; if (m.winner && m.winner !== m.p1 && m.winner !== m.p2) m.winner = null; saveData(); if (isCustomStage(content)) syncFixedBracket(content); renderAll(); }
 	[p1Input, p2Input].forEach(function (inp) { inp.addEventListener("change", commitPlayers); });
 
 	const actions = el("div", { class: "match-edit-actions" }, [
@@ -1538,4 +1905,5 @@ window.addEventListener("resize", function () {
 	}, 150);
 });
 
+initTheme();
 loadData();

@@ -20,8 +20,14 @@
 				"Đỗ Thành Chung"
 			],
 			"groups": [
-				{ "name": "Bảng A", "players": [] },
-				{ "name": "Bảng B", "players": [] }
+				{
+					"name": "Bảng A",
+					"players": []
+				},
+				{
+					"name": "Bảng B",
+					"players": []
+				}
 			],
 			"matches": []
 		},
@@ -39,8 +45,14 @@
 				"Trần Thu Trang"
 			],
 			"groups": [
-				{ "name": "Bảng A", "players": [] },
-				{ "name": "Bảng B", "players": [] }
+				{
+					"name": "Bảng A",
+					"players": []
+				},
+				{
+					"name": "Bảng B",
+					"players": []
+				}
 			],
 			"matches": []
 		},
@@ -58,8 +70,14 @@
 				"Lê Thị Hồng Phượng"
 			],
 			"groups": [
-				{ "name": "Bảng A", "players": [] },
-				{ "name": "Bảng B", "players": [] }
+				{
+					"name": "Bảng A",
+					"players": []
+				},
+				{
+					"name": "Bảng B",
+					"players": []
+				}
 			],
 			"matches": []
 		},
@@ -67,6 +85,7 @@
 			"id": "doi-nam",
 			"label": "Đôi nam",
 			"format": "swiss",
+			"customStage": true,
 			"scoringNote": "Thắng 2/3 séc — séc 1 & 2 đến 21 điểm, séc 3 (nếu có) đến 15 điểm. Thể thức Swiss, sau đó chia nhánh Thắng/Thua.",
 			"participants": [
 				"Trần Thái An - Nguyễn Cao Kế",
@@ -82,11 +101,12 @@
 			"id": "doi-nam-nu-1",
 			"label": "Đôi nam nữ · Nhóm 1",
 			"format": "swiss",
+			"customStage": true,
 			"scoringNote": "Thắng 2/3 séc — séc 1 & 2 đến 21 điểm, séc 3 (nếu có) đến 15 điểm. Thể thức Swiss, sau đó chia nhánh Thắng/Thua.",
 			"participants": [
 				"Nguyễn Đình Triết - Nguyễn Thụy Thảo Vy",
 				"Trần Văn Cường - Huỳnh Thị Thoại My",
-				"Chề Hỷ Minh - Phan Kim Thoại",
+				"Nguyễn Văn Phong - Nguyễn Thị Như Quỳnh",
 				"Phan Văn Thịnh - Lý Thanh Trúc",
 				"Sau Thành Thái - Trần Thu Trang",
 				"Lương Công Triều - Trần Minh Thư",
@@ -99,6 +119,7 @@
 			"id": "doi-nam-nu-2",
 			"label": "Đôi nam nữ · Nhóm 2",
 			"format": "swiss",
+			"customStage": true,
 			"scoringNote": "Thắng 2/3 séc — séc 1 & 2 đến 21 điểm, séc 3 (nếu có) đến 15 điểm. Thể thức Swiss, sau đó chia nhánh Thắng/Thua.",
 			"participants": [
 				"Nguyễn Đức Tuấn - Mai Nguyễn Gia Nhi",
