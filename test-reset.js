@@ -856,4 +856,76 @@ console.log("✅ isCustomStage: marker / tương thích 8 đội / không custom
 	console.log("✅ Bug 2: applySeedToContent group + nút Reset group — PASS");
 }
 
+/* ============================================================
+   14. SSE client — connectRealtime: EventSource + reload khi event
+   ============================================================ */
+{
+	let esUrl = null;
+	let esListener = null;
+	let fetchCount = 0;
+	const mainEl4 = makeEl("div");
+	const sandbox4 = {
+		console: console,
+		document: {
+			body: makeEl("body"),
+			documentElement: makeEl("html"),
+			getElementById: function (id) { return id === "main" ? mainEl4 : makeEl("div"); },
+			createElement: function (tag) { return makeEl(tag); },
+			createTextNode: function (t) { return { nodeType: 3, textContent: String(t) }; },
+			createElementNS: function () { return makeEl("svg"); },
+			querySelector: function () { return null; },
+			querySelectorAll: function () { return []; }
+		},
+		location: { search: "" },
+		localStorage: { getItem: function () { return null; }, setItem() {}, removeItem() {} },
+		requestAnimationFrame: function () {},
+		prompt: function () { return null; },
+		confirm: function () { return true; },
+		alert: function () {},
+		addEventListener: function () {},
+		EventSource: function (url) {
+			esUrl = url;
+			this.addEventListener = function (type, fn) { if (type === "data-updated") esListener = fn; };
+			this.close = function () {};
+		},
+		fetch: function () {
+			fetchCount++;
+			return Promise.resolve({
+				ok: true,
+				json: function () { return Promise.resolve({ event: {}, contents: [{ id: "x", label: "Mới", format: "swiss", customStage: true, participants: [], unassignedPairs: [], matches: [] }] }); }
+			});
+		},
+	};
+	sandbox4.window = sandbox4;
+	const ctx4 = createContext(sandbox4);
+	runInContext(customStageSrc, ctx4);
+	runInContext(readFileSync(join(__dirname, "swiss-core.js"), "utf8"), ctx4);
+	runInContext(appSrc
+		.replace("let data = null;", "var data = null;")
+		.replace("let activeId = null;", "var activeId = null;")
+		.replace("let editMode = false;", "var editMode = false;")
+		.replace("let lastSaveAt = 0;", "var lastSaveAt = 0;"), ctx4);
+	ctx4.saveData = function () {};
+	ctx4.data = { event: {}, contents: [{ id: "x", label: "Cũ", format: "swiss", customStage: true, participants: [], unassignedPairs: [], matches: [] }] };
+	ctx4.activeId = "x";
+	ctx4.connectRealtime();
+	assert.strictEqual(esUrl, "/api/events", "connectRealtime mở EventSource('/api/events')");
+	assert.ok(typeof esListener === "function", "connectRealtime đăng ký listener data-updated");
+	/* guard: vừa tự PUT <1s → không fetch */
+	fetchCount = 0; /* baseline: loadData() (tự chạy cuối app.js) đã fetch 1 lần khi load */
+	ctx4.lastSaveAt = Date.now();
+	esListener();
+	assert.strictEqual(fetchCount, 0, "guard: không fetch khi chính mình vừa save <1s");
+	/* event từ người khác → fetch + renderAll */
+	ctx4.lastSaveAt = 0;
+	esListener();
+	setTimeout(function () {
+		assert.ok(fetchCount > 0, "event từ người khác → fetch lại /api/data");
+		/* assert section title render trong mainEl (label chỉ nằm trong tabsEl — KHÔNG assert label) */
+		assert.ok(allText(mainEl4).indexOf("Danh sách cặp đấu tham gia") !== -1, "renderAll chạy lại với dữ liệu mới (section 1 hiện)");
+		assert.ok(allText(mainEl4).indexOf("Sơ đồ / Bảng đấu") !== -1, "renderAll chạy lại (section 2 hiện)");
+		console.log("✅ SSE client: connectRealtime EventSource + reload khi event — PASS");
+	}, 50);
+}
+
 console.log("✅ Tất cả test reset + smoke bracket đều PASS");
