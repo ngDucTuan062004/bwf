@@ -14,6 +14,7 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
 const STORE_FILE = join(__dirname, 'data-store.json');
+const sseClients = new Set();
 
 const MIME = {
 	'.html': 'text/html; charset=utf-8',
@@ -77,10 +78,30 @@ const server = createServer(async function (req, res) {
 		try {
 			const body = JSON.parse(await readBody(req));
 			writeFileSync(STORE_FILE, JSON.stringify(body, null, '\t'), 'utf8');
+			sseClients.forEach(function (client) {
+				if (client.writableEnded || client.destroyed) return;
+				try { client.write('event: data-updated\ndata: {}\n\n'); } catch (e) { sseClients.delete(client); }
+			});
 			return sendJson(res, 200, { ok: true });
 		} catch (e) {
 			return sendJson(res, 400, { error: 'Dữ liệu không hợp lệ' });
 		}
+	}
+	if (path === '/api/events' && req.method === 'GET') {
+		res.writeHead(200, {
+			'Content-Type': 'text/event-stream; charset=utf-8',
+			'Cache-Control': 'no-cache',
+			'Connection': 'keep-alive',
+			'Access-Control-Allow-Origin': '*',
+		});
+		res.write(': connected\n\n');
+		sseClients.add(res);
+		const heartbeat = setInterval(function () {
+			if (res.writableEnded || res.destroyed) { clearInterval(heartbeat); sseClients.delete(res); return; }
+			try { res.write(': ping\n\n'); } catch (e) { clearInterval(heartbeat); sseClients.delete(res); }
+		}, 15000);
+		req.on('close', function () { clearInterval(heartbeat); sseClients.delete(res); });
+		return;
 	}
 	if (path === '/api/auth' && req.method === 'POST') {
 		try {
