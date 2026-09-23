@@ -688,20 +688,23 @@ function renderParticipantsSection(content) {
 	/* swiss: chỉ hiện participants đã seed; danh sách chờ (unassignedPairs) do
 	   renderSwissPairOrder / renderSeedPool đảm nhiệm — tránh trùng lặp. */
 	const participants = content.participants || [];
+	const waiting = content.unassignedPairs || [];
+	const allPairs = participants.slice();
+	waiting.forEach(function (n) { if (allPairs.indexOf(n) === -1) allPairs.push(n); });
 	const swissMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
 	const hasMatches = swissMatches.length > 0;
 	const wrap = el("div", { class: "pool-card" });
 	wrap.appendChild(el("div", { class: "pool-head" }, [
 		el("h3", { text: "Danh sách cặp đấu tham gia" }),
-		el("span", { class: "pool-count", text: participants.length + " cặp đã xếp" }),
+		el("span", { class: "pool-count", text: allPairs.length + " cặp tham gia" }),
 	]));
 	const chipsWrap = el("div", { class: "pool-chips" });
-	if (!participants.length) {
+	if (!allPairs.length) {
 		chipsWrap.appendChild(el("p", { class: "empty", style: "padding:4px 2px;" }, "Chưa có cặp nào."));
 	} else {
-		participants.forEach(function (name) {
+		allPairs.forEach(function (name) {
 			const chip = el("span", { class: "pool-chip", text: name });
-			if (editMode && !isCustomStage(content)) {
+			if (editMode && !isCustomStage(content) && participants.indexOf(name) !== -1) {
 				chip.appendChild(el("button", {
 					class: "pool-chip-del", type: "button", title: "Xoá khỏi danh sách",
 					onclick: function (e) {
