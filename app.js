@@ -98,6 +98,7 @@ async function loadData() {
 }
 
 async function saveData() {
+	lastSaveAt = Date.now(); /* set TRƯỚC await — server broadcast sau writeFileSync, PUT response về sau → nếu set sau await thì echo arrive trước lastSaveAt */
 	if (!isAdmin || !adminToken) return;
 	try {
 		const res = await fetch("/api/data", {
@@ -117,6 +118,7 @@ async function saveData() {
 }
 
 let saveFlashTimer = null;
+let lastSaveAt = 0;
 function flashSaved() {
 	const badge = document.getElementById("save-status");
 	if (!badge) return;
@@ -136,6 +138,30 @@ function init() {
 	}
 	buildTabs();
 	renderAll();
+	if (!fetchFailed) connectRealtime();
+}
+
+function connectRealtime() {
+	if (typeof EventSource === "undefined") return;
+	try {
+		const es = new EventSource("/api/events");
+		es.addEventListener("data-updated", async function () {
+			if (Date.now() - lastSaveAt < 1000) return; /* chính mình vừa PUT → bỏ qua */
+			try {
+				const res = await fetch("/api/data", { cache: "no-store" });
+				if (!res.ok) return;
+				const fresh = await res.json();
+				if (!fresh || !fresh.contents) return;
+				data = fresh;
+				if (!data.contents.some(function (c) { return c.id === activeId; })) {
+					activeId = data.contents.length ? data.contents[0].id : null;
+				}
+				buildTabs();
+				renderAll();
+			} catch (e) { /* giữ dữ liệu cũ */ }
+		});
+		es.onerror = function () { /* EventSource tự reconnect */ };
+	} catch (e) { /* không có SSE (file://) */ }
 }
 
 function renderFetchWarning() {
