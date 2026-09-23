@@ -697,14 +697,15 @@ console.log("✅ isCustomStage: marker / tương thích 8 đội / không custom
    8. renderParticipantsSection + renderBracketSection — smoke 4-section
    ============================================================ */
 {
-	/* swiss custom: participants section hiện cặp đã seed, KHÔNG hiện unassignedPairs */
+	/* swiss custom: participants section hiện CẢ cặp đã seed lẫn chờ xếp (sau reset customStage
+	   participants rỗng + toàn bộ cặp nằm trong unassignedPairs → nếu chỉ đọc participants sẽ trống) */
 	const cSec = { format: "swiss", customStage: true, participants: teams8.slice(0, 6), unassignedPairs: teams8.slice(6), matches: [] };
 	const pSec = ctx.renderParticipantsSection(cSec);
 	const pText = allText(pSec);
 	assert.ok(pText.indexOf("T1") !== -1, "participants section swiss hiện T1 (đã seed)");
 	assert.ok(pText.indexOf("T6") !== -1, "participants section swiss hiện T6 (đã seed)");
-	assert.ok(pText.indexOf("T7") === -1, "participants section swiss KHÔNG hiện T7 (chờ)");
-	assert.ok(pText.indexOf("T8") === -1, "participants section swiss KHÔNG hiện T8 (chờ)");
+	assert.ok(pText.indexOf("T7") !== -1, "participants section swiss hiện T7 (chờ xếp — lỗi Bug 1)");
+	assert.ok(pText.indexOf("T8") !== -1, "participants section swiss hiện T8 (chờ xếp — lỗi Bug 1)");
 
 	/* participants section group: pool hiển thị */
 	const gSec = { format: "group", groups: [{ name: "Bảng A", players: ["P1", "P2"] }], matches: [] };
@@ -790,6 +791,18 @@ console.log("✅ isCustomStage: marker / tương thích 8 đội / không custom
 	const bracketSlice = mainText.slice(bracketStart, bxhStart);
 	assert.ok(bracketSlice.indexOf("nhóm 8 đội") !== -1, "Sơ đồ / Bảng đấu chứa bracket nhóm 8 đội");
 	console.log("✅ renderAll: 4 section đúng thứ tự (VĐV → Sơ đồ → BXH → Lịch thi đấu) — PASS");
+}
+
+/* ============================================================
+   12. Bug 1 — section 1 swiss hiển thị đủ cặp (participants + unassignedPairs)
+   ============================================================ */
+{
+	const pSec = ctx.renderParticipantsSection({ format: "swiss", customStage: true, participants: teams8.slice(0, 2), unassignedPairs: teams8.slice(2, 6), matches: [] });
+	const pText = allText(pSec);
+	assert.ok(pText.indexOf(teams8[0]) !== -1, "section 1 hiện cặp đã xếp (participants)");
+	assert.ok(pText.indexOf(teams8[3]) !== -1, "section 1 hiện cặp chờ xếp (unassignedPairs)");
+	assert.ok(pText.indexOf("6 cặp") !== -1, "pool-count = tổng cặp (2 xếp + 4 chờ = 6)");
+	console.log("✅ Bug 1: section 1 swiss hiển thị đủ cặp participants + unassignedPairs — PASS");
 }
 
 console.log("✅ Tất cả test reset + smoke bracket đều PASS");
