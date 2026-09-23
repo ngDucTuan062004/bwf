@@ -731,4 +731,54 @@ console.log("✅ isCustomStage: marker / tương thích 8 đội / không custom
 	console.log("✅ renderParticipantsSection + renderBracketSection: swiss seed/chờ / group pool / bracket group / custom 8 đội / group card + standings — PASS");
 }
 
+/* ============================================================
+   9. renderAll — 4 section theo đúng thứ tự (smoke qua var-replace sandbox)
+   ============================================================ */
+{
+	const mainEl3 = makeEl("div");
+	const sandbox3 = {
+		console: console,
+		document: {
+			body: makeEl("body"),
+			documentElement: makeEl("html"),
+			getElementById: function (id) { return id === "main" ? mainEl3 : makeEl("div"); },
+			createElement: function (tag) { return makeEl(tag); },
+			createTextNode: function (t) { return { nodeType: 3, textContent: String(t) }; },
+			createElementNS: function () { return makeEl("svg"); },
+			querySelector: function () { return null; },
+			querySelectorAll: function () { return []; }
+		},
+		location: { search: "" },
+		localStorage: { getItem: function () { return null; }, setItem() {}, removeItem() {} },
+		requestAnimationFrame: function () {},
+		prompt: function () { return null; },
+		confirm: function () { return true; },
+		alert: function () {},
+		fetch: function () { return new Promise(function () {}); },
+		addEventListener: function () {}
+	};
+	sandbox3.window = sandbox3;
+	const ctx3 = createContext(sandbox3);
+	runInContext(customStageSrc, ctx3);
+	runInContext(readFileSync(join(__dirname, "swiss-core.js"), "utf8"), ctx3);
+	runInContext(appSrc
+		.replace("let data = null;", "var data = null;")
+		.replace("let activeId = null;", "var activeId = null;")
+		.replace("let editMode = false;", "var editMode = false;"), ctx3);
+	ctx3.saveData = function () {};
+	ctx3.data = { contents: [{ id: "x", format: "swiss", customStage: true, participants: teams8.slice(), unassignedPairs: [], seedFilled: [], matches: [] }] };
+	ctx3.activeId = "x";
+	ctx3.renderAll();
+	const mainText = allText(mainEl3);
+	const order = ["VĐV / cặp VĐV tham gia thi đấu", "Sơ đồ / Bảng đấu", "Bảng xếp hạng", "Lịch thi đấu & kết quả"];
+	let last = -1;
+	order.forEach(function (t) {
+		const i = mainText.indexOf(t);
+		assert.ok(i !== -1, "renderAll hiện section \"" + t + "\"");
+		assert.ok(i > last, "section \"" + t + "\" đứng sau section trước");
+		last = i;
+	});
+	console.log("✅ renderAll: 4 section đúng thứ tự (VĐV → Sơ đồ → BXH → Lịch thi đấu) — PASS");
+}
+
 console.log("✅ Tất cả test reset + smoke bracket đều PASS");

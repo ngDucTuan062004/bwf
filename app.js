@@ -614,32 +614,12 @@ function buildStandingsTable(rows, onDeletePlayer, deleteTitle, deleteSymbol, on
 
 function renderStandingsSection(content) {
 	const outer = el("div");
-	if (content.format === "group") {
-		outer.appendChild(renderPlayerPool(content));
-	}
 	const wrap = el("div", { class: "groups-wrap" });
 	outer.appendChild(wrap);
 	if (content.format === "group") {
 		(content.groups || []).forEach(function (g) {
-			wrap.appendChild(renderGroupCard(content, g, g.name));
 			wrap.appendChild(renderGroupStandings(content, g, g.name));
 		});
-		if (editMode) {
-			wrap.appendChild(el("div", { class: "group-card" }, [
-				el("h3", { text: "+ Bảng mới" }),
-				el("div", { class: "add-player-row" }, [
-					el("button", {
-						class: "btn small", type: "button", onclick: function () {
-							const name = prompt("Tên bảng mới (VD: Bảng C):");
-							if (!name) return;
-							content.groups.push({ name: name.trim(), players: [] });
-							saveData();
-							renderAll();
-						}
-					}, "+ Thêm bảng"),
-				]),
-			]));
-		}
 	} else {
 		const swissMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
 		const rows = computeStandings(content.participants || [], swissMatches);
@@ -647,51 +627,28 @@ function renderStandingsSection(content) {
 		card.appendChild(el("h3", { text: "Xếp hạng vòng Swiss" }));
 		const openHistory = function (name) { showTeamHistory(content, name); };
 		const hasMatches = swissMatches.length > 0;
-		const deleteCb = editMode ? function (name) {
-			if (!confirm("Xoá \"" + name + "\" khỏi danh sách?")) return;
-			content.participants = content.participants.filter(function (p) { return p !== name; });
-			saveData(); renderAll();
-		} : null;
 
 		if (isCustomStage(content)) {
 			/* Nhóm 6/8 đội: xếp hạng tùy chỉnh thay bảng standings + nhánh; không dùng pair order */
-const participants = content.participants || [];
+			const participants = content.participants || [];
 			const size = fixedGroupSize(content);
 			const state = size === 6
 				? CustomStage.computeFixedState6(participants, swissMatches)
 				: CustomStage.computeFixedState(participants, swissMatches);
 			if (size === 6 || size === 8) {
-				card.appendChild(el("p", { class: "standings-note" }, "Chưa có trận nào — xếp " + (size === 6 ? "6" : "8") + " cặp từ danh sách chờ vào ô Hạt Giống ở sơ đồ bên dưới để bắt đầu"));
+				card.appendChild(el("p", { class: "standings-note" }, "Chưa có trận nào — xếp " + (size === 6 ? "6" : "8") + " cặp từ danh sách chờ vào ô Hạt Giống ở mục Sơ đồ / Bảng đấu để bắt đầu"));
 			} else {
 				card.appendChild(renderCustomRanking(state));
 			}
-		} else if (editMode && !hasMatches) {
-			/* Chưa có trận + đang chỉnh sửa → bảng kéo-thả đánh số cặp (thay cho bảng xếp hạng rỗng) */
-			card.appendChild(renderSwissPairOrder(content));
 		} else if (!content.participants || !content.participants.length) {
 			card.appendChild(el("p", { class: "empty", style: "padding:12px 14px;" }, "Chưa có cặp đấu nào."));
 		} else if (rows.every(function (r) { return r.played === 0; })) {
-			card.appendChild(buildStandingsTable(rows, deleteCb, null, null, openHistory, true));
+			card.appendChild(buildStandingsTable(rows, null, null, null, openHistory, true));
 			card.appendChild(el("p", { class: "standings-note" }, "Chưa có trận nào ghi nhận kết quả."));
 		} else {
-			card.appendChild(buildStandingsTable(rows, deleteCb, null, null, openHistory, true));
+			card.appendChild(buildStandingsTable(rows, null, null, null, openHistory, true));
 			card.appendChild(el("p", { class: "standings-note" }, "Xếp theo: Thắng → Hiệu số séc → Hiệu số điểm. Đội nghỉ vòng (bye) khi không thể ghép cặp tránh tái đấu."));
 			card.appendChild(renderSwissBranches(rows));
-		}
-		if (editMode && hasMatches && !isCustomStage(content)) {
-			const input = el("input", { type: "text", placeholder: "Tên cặp đấu mới" });
-			const addRow = el("div", { class: "add-player-row" }, [
-				input,
-				el("button", {
-					class: "btn small", type: "button", onclick: function () {
-						const name = input.value.trim();
-						if (!name) return;
-						if (content.participants.indexOf(name) === -1) { content.participants.push(name); saveData(); renderAll(); }
-						input.value = "";
-					}
-				}, "+ Thêm"),
-			]);
-			card.appendChild(addRow);
 		}
 		if (editMode) {
 			const actions = [];
@@ -715,7 +672,6 @@ const participants = content.participants || [];
 			card.appendChild(el("div", { class: "group-actions" }, actions));
 		}
 		wrap.appendChild(card);
-		outer.appendChild(isCustomStage(content) ? renderCustomBracket(content) : renderSwissBracket(content));
 	}
 	return outer;
 }
@@ -1979,6 +1935,18 @@ function renderAll() {
 		el("span", {}, [el("i", { class: "pending" }), "Sắp diễn ra"]),
 	]);
 	mainEl.appendChild(legend);
+
+	const participantsSection = el("section", { class: "block" }, [
+		el("h2", { class: "block-title", text: "VĐV / cặp VĐV tham gia thi đấu" }),
+		renderParticipantsSection(content),
+	]);
+	mainEl.appendChild(participantsSection);
+
+	const bracketSection = el("section", { class: "block" }, [
+		el("h2", { class: "block-title", text: "Sơ đồ / Bảng đấu" }),
+		renderBracketSection(content),
+	]);
+	mainEl.appendChild(bracketSection);
 
 	const titleRow = el("div", { class: "block-title-row" }, [
 		el("h2", { class: "block-title", text: "Bảng xếp hạng" }),
