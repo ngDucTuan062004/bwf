@@ -584,8 +584,12 @@ table.standings tbody tr.rank-2 td:first-child::before {
 	width: 140px;
 }
 
-.edit-row input[type="number"] {
-	width: 52px;
+.edit-row input[type="number"],
+.fixed-modal-sets input[type="number"] {
+	width: 74px;
+	font-size: 15px;
+	padding: 7px 9px;
+	text-align: center;
 }
 
 .set-edit-group {
@@ -651,6 +655,20 @@ table.standings tbody tr.rank-2 td:first-child::before {
 
 .btn.danger-text:hover {
 	text-decoration: underline;
+}
+
+.btn.primary {
+	background: var(--gold);
+	border-color: var(--gold);
+	color: var(--bg);
+	font-weight: 700;
+	box-shadow: var(--glow-gold);
+}
+
+.btn.primary:hover {
+	background: var(--gold-soft);
+	color: var(--gold);
+	box-shadow: none;
 }
 
 .add-match-card {

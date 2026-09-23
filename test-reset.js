@@ -665,6 +665,31 @@ console.log("✅ isCustomStage: marker / tương thích 8 đội / không custom
 	assert.strictEqual(ctx.commitSetsFromInputs(m, [mk(21), mk(""), mk(21)], [mk(15), mk(""), mk(18)]), true, "cặp 3 đủ dù cặp 2 trống → commit");
 	assert.deepStrictEqual(hostClone(m.sets), [[21, 15], [21, 18]], "m.sets giữ cặp 3");
 	console.log("✅ commitSetsFromInputs: nửa chừng không commit / đủ cặp commit / không mất số khi tab — PASS");
+
+/* ============================================================
+   7. fixedGroupSize — bracket không nhầm 6/8 đội khi seed dở dang
+   ============================================================ */
+{
+	assert.ok(ctx.fixedGroupSize, "fixedGroupSize phải tồn tại sau khi load app.js");
+	/* 8 đội chưa seed: 0 trong bracket + 8 chờ → 8 */
+	assert.strictEqual(ctx.fixedGroupSize({ participants: [], unassignedPairs: ["a", "b", "c", "d", "e", "f", "g", "h"] }), 8, "0 seed + 8 chờ → 8");
+	/* kéo 6/8 vào bracket: 6 trong bracket + 2 chờ → vẫn 8 (KHÔNG nhầm 6) */
+	assert.strictEqual(ctx.fixedGroupSize({ participants: ["a", "b", "c", "d", "e", "f"], unassignedPairs: ["g", "h"] }), 8, "6 seed + 2 chờ → 8");
+	/* nhóm 6 đội thật: 6 seed + 0 chờ → 6 */
+	assert.strictEqual(ctx.fixedGroupSize({ participants: ["a", "b", "c", "d", "e", "f"], unassignedPairs: [] }), 6, "6 seed + 0 chờ → 6");
+	/* state cũ (không có unassignedPairs) */
+	assert.strictEqual(ctx.fixedGroupSize({ participants: ["a", "b", "c", "d", "e", "f", "g", "h"] }), 8, "state cũ, 8 seed đặc → 8");
+	/* rỗng */
+	assert.strictEqual(ctx.fixedGroupSize({ participants: [], unassignedPairs: [] }), 0, "rỗng → 0");
+
+	/* renderCustomBracket: 6 seed + 2 chờ → VẪN bracket 8 đội (không nhảy sang 6) */
+	const t8 = ctx.renderCustomBracket({ format: "swiss", customStage: true, participants: teams8.slice(0, 6), unassignedPairs: teams8.slice(6), matches: [] });
+	assert.ok(allText(t8).indexOf("nhóm 8 đội") !== -1, "6 seed + 2 chờ → vẫn bracket 8 đội");
+	/* 6 seed + 0 chờ (nhóm 6 đội thật) → bracket 6 đội */
+	const t6 = ctx.renderCustomBracket({ format: "swiss", customStage: true, participants: teams8.slice(0, 6), unassignedPairs: [], matches: [] });
+	assert.ok(allText(t6).indexOf("nhóm 6 đội") !== -1, "6 seed + 0 chờ → bracket 6 đội");
+	console.log("✅ fixedGroupSize: tổng participants+chờ / bracket giữ 8 khi seed dở dang / 6 thật → 6 — PASS");
+}
 }
 
 console.log("✅ Tất cả test reset + smoke bracket đều PASS");

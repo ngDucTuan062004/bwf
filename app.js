@@ -428,7 +428,7 @@ function renderPlayerPool(content) {
 	const pool = ensurePool(content);
 	const wrap = el("div", { class: "pool-card" });
 	wrap.appendChild(el("div", { class: "pool-head" }, [
-		el("h3", { text: "Danh sách vận động viên chờ bốc thăm" }),
+		el("h3", { text: "Danh sách vận động viên tham gia" }),
 		el("span", { class: "pool-count", text: pool.length + " VĐV chưa vào bảng" }),
 	]));
 
@@ -632,12 +632,13 @@ function renderStandingsSection(content) {
 
 		if (isCustomStage(content)) {
 			/* Nhóm 6/8 đội: xếp hạng tùy chỉnh thay bảng standings + nhánh; không dùng pair order */
-			const participants = content.participants || [];
-			const state = participants.length === 6
+const participants = content.participants || [];
+			const size = fixedGroupSize(content);
+			const state = size === 6
 				? CustomStage.computeFixedState6(participants, swissMatches)
 				: CustomStage.computeFixedState(participants, swissMatches);
-			if (!hasMatches) {
-				card.appendChild(el("p", { class: "standings-note" }, "Chưa có trận nào — xếp " + (participants.length === 6 ? "6" : "8") + " cặp từ danh sách chờ vào ô Hạt Giống ở sơ đồ bên dưới để bắt đầu"));
+			if (size === 6 || size === 8) {
+				card.appendChild(el("p", { class: "standings-note" }, "Chưa có trận nào — xếp " + (size === 6 ? "6" : "8") + " cặp từ danh sách chờ vào ô Hạt Giống ở sơ đồ bên dưới để bắt đầu"));
 			} else {
 				card.appendChild(renderCustomRanking(state));
 			}
@@ -976,9 +977,15 @@ function renderBracketLegend() {
 	]);
 }
 
+/* Kích thước nhóm = tổng đội (participants + danh sách chờ) — tránh nhầm 6/8 đội
+   khi mới gán 6/8 seed của nhóm 8 đội. */
+function fixedGroupSize(content) {
+	return (content.participants || []).length + (content.unassignedPairs || []).length;
+}
+
 function renderCustomBracket(content) {
 	const participants = content.participants || [];
-	if (participants.length === 6) return renderCustomBracket6(content);
+	if (fixedGroupSize(content) === 6) return renderCustomBracket6(content);
 
 	const section = el("div", { class: "swiss-bracket-card fixed-bracket" });
 	section.appendChild(el("h3", { class: "swiss-bracket-title", text: "Sơ đồ thi đấu — nhóm 8 đội (14 trận cố định)" }));
@@ -1342,7 +1349,7 @@ function ensureR1(content) {
 function syncFixedBracket(content) {
 	const participants = content.participants || [];
 	const customMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
-	const bracket = participants.length === 6
+	const bracket = fixedGroupSize(content) === 6
 		? CustomStage.buildFixedBracket6(participants, customMatches)
 		: CustomStage.buildFixedBracket(participants, customMatches);
 	let changed = false;
@@ -1385,11 +1392,10 @@ function openFixedResultModal(content, b) {
 		]));
 	}
 	function commitScore() {
-		if (!commitSetsFromInputs(m, inputsA, inputsB)) return;
+		if (!commitSetsFromInputs(m, inputsA, inputsB)) return false;
 		saveData();
 		syncFixedBracket(content);
-		overlay.remove();
-		renderAll();
+		return true;
 	}
 	inputsA.concat(inputsB).forEach(function (inp) { inp.addEventListener("change", commitScore); });
 	card.appendChild(setsWrap);
@@ -1401,6 +1407,9 @@ function openFixedResultModal(content, b) {
 		el("button", { class: "btn small outline", type: "button", onclick: function () { m.winner = null; m.sets = null; saveData(); syncFixedBracket(content); overlay.remove(); renderAll(); } }, "Xoá kết quả"),
 	]);
 	card.appendChild(quickRow);
+	card.appendChild(el("div", { class: "edit-row modal-save-row" }, [
+		el("button", { class: "btn primary", type: "button", onclick: function () { if (commitScore()) { overlay.remove(); renderAll(); } } }, "💾 Lưu kết quả"),
+	]));
 
 	overlay.appendChild(card);
 	overlay.addEventListener("click", function (e) { if (e.target === overlay) overlay.remove(); });
@@ -1698,16 +1707,23 @@ function renderMatchCard(m, content) {
 			el("span", { text: "Séc " + (i + 1) }), ia, el("span", { text: "–" }), ib,
 		]));
 	}
-	function commitScore() { if (!commitSetsFromInputs(m, inputsA, inputsB)) return; saveData(); if (isCustomStage(content)) syncFixedBracket(content); renderAll(); }
+	function commitScore() { if (!commitSetsFromInputs(m, inputsA, inputsB)) return; saveData(); if (isCustomStage(content)) syncFixedBracket(content); }
 	inputsA.concat(inputsB).forEach(function (inp) { inp.addEventListener("change", commitScore); });
 	card.appendChild(setsWrap);
+	/* Rời khỏi nhóm ô nhập (Tab sang meta / click ngoài) → render lại để cập nhật hiển thị;
+	   Tab giữa các ô trong nhóm → giữ focus, không rebuild. */
+	setsWrap.addEventListener("focusout", function (e) {
+		const next = e.relatedTarget;
+		if (next && setsWrap.contains(next)) return;
+		renderAll();
+	});
 
 	if (isSwiss) {
 		const quickRow = el("div", { class: "edit-row quick-win-row" }, [
 			el("span", { class: "quick-win-label", text: "Chọn đội thắng nhanh:" }),
-el("button", { class: "btn small", type: "button", onclick: function () { if (!m.p1 || !m.p2) return; m.winner = m.p1; m.sets = null; saveData(); if (isCustomStage(content)) syncFixedBracket(content); renderAll(); } }, "🏆 " + (m.p1 || "Đội 1")),
-		el("button", { class: "btn small", type: "button", onclick: function () { if (!m.p1 || !m.p2) return; m.winner = m.p2; m.sets = null; saveData(); if (isCustomStage(content)) syncFixedBracket(content); renderAll(); } }, "🏆 " + (m.p2 || "Đội 2")),
-		el("button", { class: "btn small outline", type: "button", onclick: function () { m.winner = null; m.sets = null; saveData(); if (isCustomStage(content)) syncFixedBracket(content); renderAll(); } }, "Xoá kết quả"),
+			el("button", { class: "btn small", type: "button", onclick: function () { if (!m.p1 || !m.p2) return; m.winner = m.p1; m.sets = null; saveData(); if (isCustomStage(content)) syncFixedBracket(content); renderAll(); } }, "🏆 " + (m.p1 || "Đội 1")),
+			el("button", { class: "btn small", type: "button", onclick: function () { if (!m.p1 || !m.p2) return; m.winner = m.p2; m.sets = null; saveData(); if (isCustomStage(content)) syncFixedBracket(content); renderAll(); } }, "🏆 " + (m.p2 || "Đội 2")),
+			el("button", { class: "btn small outline", type: "button", onclick: function () { m.winner = null; m.sets = null; saveData(); if (isCustomStage(content)) syncFixedBracket(content); renderAll(); } }, "Xoá kết quả"),
 		]);
 		card.appendChild(quickRow);
 	}

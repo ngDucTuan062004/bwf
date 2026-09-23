@@ -111,5 +111,4 @@ const server = createServer(async function (req, res) {
 
 server.listen(PORT, function () {
 	console.log('🏸 BWF local dev server: http://localhost:' + PORT);
-	console.log('   Mật khẩu admin mặc định: ' + ADMIN_PASSWORD + ' (đổi bằng env ADMIN_PASSWORD)');
 });
