@@ -721,6 +721,110 @@ const participants = content.participants || [];
 }
 
 /* ================================================================
+   SECTION 1 — VĐV / cặp VĐV tham gia thi đấu
+   ================================================================ */
+function renderParticipantsSection(content) {
+	const outer = el("div");
+	if (content.format === "group") {
+		outer.appendChild(renderPlayerPool(content));
+		return outer;
+	}
+	/* swiss: chỉ hiện participants đã seed; danh sách chờ (unassignedPairs) do
+	   renderSwissPairOrder / renderSeedPool đảm nhiệm — tránh trùng lặp. */
+	const participants = content.participants || [];
+	const swissMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
+	const hasMatches = swissMatches.length > 0;
+	const wrap = el("div", { class: "pool-card" });
+	wrap.appendChild(el("div", { class: "pool-head" }, [
+		el("h3", { text: "Danh sách cặp đấu tham gia" }),
+		el("span", { class: "pool-count", text: participants.length + " cặp đã xếp" }),
+	]));
+	const chipsWrap = el("div", { class: "pool-chips" });
+	if (!participants.length) {
+		chipsWrap.appendChild(el("p", { class: "empty", style: "padding:4px 2px;" }, "Chưa có cặp nào."));
+	} else {
+		participants.forEach(function (name) {
+			const chip = el("span", { class: "pool-chip", text: name });
+			if (editMode && !isCustomStage(content)) {
+				chip.appendChild(el("button", {
+					class: "pool-chip-del", type: "button", title: "Xoá khỏi danh sách",
+					onclick: function (e) {
+						e.stopPropagation();
+						if (!confirm("Xoá \"" + name + "\" khỏi danh sách?")) return;
+						content.participants = content.participants.filter(function (p) { return p !== name; });
+						saveData(); renderAll();
+					}
+				}, " ×"));
+			}
+			chipsWrap.appendChild(chip);
+		});
+	}
+	wrap.appendChild(chipsWrap);
+	if (editMode && !isCustomStage(content)) {
+		const input = el("input", { type: "text", placeholder: "Tên cặp đấu mới" });
+		function addPair() {
+			const name = input.value.trim();
+			if (!name) return;
+			const all = (content.participants || []).concat(content.unassignedPairs || []);
+			if (all.indexOf(name) !== -1) { alert("Cặp \"" + name + "\" đã có trong danh sách."); return; }
+			if (!hasMatches) {
+				if (!content.unassignedPairs) content.unassignedPairs = [];
+				content.unassignedPairs.push(name);
+			} else {
+				content.participants.push(name);
+			}
+			saveData(); renderAll();
+		}
+		input.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); addPair(); } });
+		wrap.appendChild(el("div", { class: "add-player-row" }, [
+			input,
+			el("button", { class: "btn small", type: "button", onclick: addPair }, "+ Thêm cặp"),
+		]));
+	}
+	outer.appendChild(wrap);
+	return outer;
+}
+
+/* ================================================================
+   SECTION 2 — Sơ đồ / Bảng đấu
+   ================================================================ */
+function renderBracketSection(content) {
+	const outer = el("div");
+	if (content.format === "group") {
+		const wrap = el("div", { class: "groups-wrap" });
+		(content.groups || []).forEach(function (g) {
+			wrap.appendChild(renderGroupCard(content, g, g.name));
+		});
+		if (editMode) {
+			wrap.appendChild(el("div", { class: "group-card" }, [
+				el("h3", { text: "+ Bảng mới" }),
+				el("div", { class: "add-player-row" }, [
+					el("button", {
+						class: "btn small", type: "button", onclick: function () {
+							const name = prompt("Tên bảng mới (VD: Bảng C):");
+							if (!name) return;
+							content.groups.push({ name: name.trim(), players: [] });
+							saveData();
+							renderAll();
+						}
+					}, "+ Thêm bảng"),
+				]),
+			]));
+		}
+		outer.appendChild(wrap);
+		return outer;
+	}
+	/* swiss */
+	const swissMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
+	const hasMatches = swissMatches.length > 0;
+	if (editMode && !hasMatches && !isCustomStage(content)) {
+		outer.appendChild(renderSwissPairOrder(content));
+	}
+	outer.appendChild(isCustomStage(content) ? renderCustomBracket(content) : renderSwissBracket(content));
+	return outer;
+}
+
+/* ================================================================
    SWISS — bảng kéo-thả đánh số cặp (chỉ khi chưa có trận)
    ================================================================ */
 function renderSwissPairOrder(content) {

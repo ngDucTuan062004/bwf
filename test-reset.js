@@ -81,6 +81,7 @@ const ctx = createContext(sandbox);
 const customStageSrc = readFileSync(join(__dirname, "custom-stage.js"), "utf8");
 const appSrc = readFileSync(join(__dirname, "app.js"), "utf8");
 runInContext(customStageSrc, ctx);
+runInContext(readFileSync(join(__dirname, "swiss-core.js"), "utf8"), ctx);
 runInContext(appSrc, ctx);
 
 const applySeedToContent = ctx.applySeedToContent;
@@ -690,6 +691,44 @@ console.log("✅ isCustomStage: marker / tương thích 8 đội / không custom
 	assert.ok(allText(t6).indexOf("nhóm 6 đội") !== -1, "6 seed + 0 chờ → bracket 6 đội");
 	console.log("✅ fixedGroupSize: tổng participants+chờ / bracket giữ 8 khi seed dở dang / 6 thật → 6 — PASS");
 }
+}
+
+/* ============================================================
+   8. renderParticipantsSection + renderBracketSection — smoke 4-section
+   ============================================================ */
+{
+	/* swiss custom: participants section hiện cặp đã seed, KHÔNG hiện unassignedPairs */
+	const cSec = { format: "swiss", customStage: true, participants: teams8.slice(0, 6), unassignedPairs: teams8.slice(6), matches: [] };
+	const pSec = ctx.renderParticipantsSection(cSec);
+	const pText = allText(pSec);
+	assert.ok(pText.indexOf("T1") !== -1, "participants section swiss hiện T1 (đã seed)");
+	assert.ok(pText.indexOf("T6") !== -1, "participants section swiss hiện T6 (đã seed)");
+	assert.ok(pText.indexOf("T7") === -1, "participants section swiss KHÔNG hiện T7 (chờ)");
+	assert.ok(pText.indexOf("T8") === -1, "participants section swiss KHÔNG hiện T8 (chờ)");
+
+	/* participants section group: pool hiển thị */
+	const gSec = { format: "group", groups: [{ name: "Bảng A", players: ["P1", "P2"] }], matches: [] };
+	const pSecG = ctx.renderParticipantsSection(gSec);
+	assert.ok(allText(pSecG).indexOf("Danh sách vận động viên") !== -1, "participants section group hiện pool");
+
+	/* bracket section group: tên bảng + VĐV trong bảng */
+	const bSecG = ctx.renderBracketSection(gSec);
+	const bTextG = allText(bSecG);
+	assert.ok(bTextG.indexOf("Bảng A") !== -1, "bracket section group hiện tên bảng");
+	assert.ok(bTextG.indexOf("P1") !== -1, "bracket section group hiện VĐV P1");
+
+	/* bracket section swiss custom: nhóm 8 đội */
+	const bSec = ctx.renderBracketSection({ format: "swiss", customStage: true, participants: teams8.slice(0, 6), unassignedPairs: teams8.slice(6), matches: [] });
+	assert.ok(allText(bSec).indexOf("nhóm 8 đội") !== -1, "bracket section swiss custom hiện nhóm 8 đội");
+
+	/* renderGroupCard / renderGroupStandings */
+	const gCard = ctx.renderGroupCard(gSec, gSec.groups[0], "Bảng A");
+	assert.ok(allText(gCard).indexOf("Bảng A") !== -1, "renderGroupCard hiện tên bảng");
+	assert.ok(allText(gCard).indexOf("P1") !== -1, "renderGroupCard hiện VĐV P1");
+	const gStand = ctx.renderGroupStandings(gSec, gSec.groups[0], "Bảng A");
+	assert.ok(allText(gStand).indexOf("Bảng A") !== -1, "renderGroupStandings hiện tên bảng");
+	assert.ok(allText(gStand).indexOf("Chưa có trận") !== -1, "renderGroupStandings hiện note BXH khi chưa có trận");
+	console.log("✅ renderParticipantsSection + renderBracketSection: swiss seed/chờ / group pool / bracket group / custom 8 đội / group card + standings — PASS");
 }
 
 console.log("✅ Tất cả test reset + smoke bracket đều PASS");
