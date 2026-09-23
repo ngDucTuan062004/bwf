@@ -486,9 +486,7 @@ function renderPlayerPool(content) {
 	return wrap;
 }
 
-function renderStandingsGroupCard(content, group, title) {
-	const groupMatches = content.matches.filter(function (m) { return m.stage === "Vòng bảng — " + group.name; });
-	const rows = computeStandings(group.players || [], groupMatches);
+function renderGroupCard(content, group, title) {
 	const card = el("div", { class: "group-card" });
 	const headerChildren = [el("span", { text: title })];
 	if (editMode) {
@@ -526,12 +524,19 @@ function renderStandingsGroupCard(content, group, title) {
 	if (!group.players || !group.players.length) {
 		card.appendChild(el("p", { class: "empty", style: "padding:12px 14px;" },
 			editMode ? "Chưa có VĐV — kéo tên từ danh sách chờ vào đây." : "Chưa có VĐV nào."));
-	} else if (rows.every(function (r) { return r.played === 0; })) {
-		card.appendChild(buildStandingsTable(rows, editMode ? unassignCb(content, group) : null, "Đưa về danh sách chờ", " ↩"));
-		card.appendChild(el("p", { class: "standings-note" }, "Chưa có trận nào ghi nhận kết quả."));
 	} else {
-		card.appendChild(buildStandingsTable(rows, editMode ? unassignCb(content, group) : null, "Đưa về danh sách chờ", " ↩"));
-		card.appendChild(el("p", { class: "standings-note" }, "Xếp theo: Thắng → Hiệu số séc → Hiệu số điểm."));
+		const chipsWrap = el("div", { class: "pool-chips" });
+		group.players.forEach(function (name) {
+			const chip = el("span", { class: "pool-chip", text: name });
+			if (editMode) {
+				chip.appendChild(el("button", {
+					class: "pool-chip-del", type: "button", title: "Đưa về danh sách chờ",
+					onclick: function (e) { e.stopPropagation(); unassignCb(content, group)(name); },
+				}, " ↩"));
+			}
+			chipsWrap.appendChild(chip);
+		});
+		card.appendChild(chipsWrap);
 	}
 
 	if (editMode) {
@@ -546,6 +551,23 @@ function renderStandingsGroupCard(content, group, title) {
 			unassignPlayerFromGroup(cnt, name, grp);
 		};
 	}
+}
+
+function renderGroupStandings(content, group, title) {
+	const groupMatches = content.matches.filter(function (m) { return m.stage === "Vòng bảng — " + group.name; });
+	const rows = computeStandings(group.players || [], groupMatches);
+	const wrap = el("div", { class: "group-card" });
+	wrap.appendChild(el("h3", { text: title }));
+	if (!group.players || !group.players.length) {
+		wrap.appendChild(el("p", { class: "empty", style: "padding:12px 14px;" }, "Chưa có VĐV nào."));
+	} else if (rows.every(function (r) { return r.played === 0; })) {
+		wrap.appendChild(buildStandingsTable(rows, null, null, null, null, true));
+		wrap.appendChild(el("p", { class: "standings-note" }, "Chưa có trận nào ghi nhận kết quả."));
+	} else {
+		wrap.appendChild(buildStandingsTable(rows, null, null, null, null, true));
+		wrap.appendChild(el("p", { class: "standings-note" }, "Xếp theo: Thắng → Hiệu số séc → Hiệu số điểm."));
+	}
+	return wrap;
 }
 
 function buildStandingsTable(rows, onDeletePlayer, deleteTitle, deleteSymbol, onClickName, showNumber) {
@@ -599,7 +621,8 @@ function renderStandingsSection(content) {
 	outer.appendChild(wrap);
 	if (content.format === "group") {
 		(content.groups || []).forEach(function (g) {
-			wrap.appendChild(renderStandingsGroupCard(content, g, g.name));
+			wrap.appendChild(renderGroupCard(content, g, g.name));
+			wrap.appendChild(renderGroupStandings(content, g, g.name));
 		});
 		if (editMode) {
 			wrap.appendChild(el("div", { class: "group-card" }, [
