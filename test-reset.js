@@ -805,4 +805,55 @@ console.log("✅ isCustomStage: marker / tương thích 8 đội / không custom
 	console.log("✅ Bug 1: section 1 swiss hiển thị đủ cặp participants + unassignedPairs — PASS");
 }
 
+/* ============================================================
+   13. Bug 2 — applySeedToContent group + nút Reset group
+   ============================================================ */
+{
+	/* (a) applySeedToContent group — chạy trên ctx (không cần editMode) */
+	const seedG = { id: "g", format: "group", unassignedPlayers: ["P1", "P2", "P3"], groups: [{ name: "Bảng A", players: [] }, { name: "Bảng B", players: [] }], matches: [] };
+	const curG = { id: "g", format: "group", unassignedPlayers: [], groups: [{ name: "Bảng A", players: ["P1"] }], matches: [{ stage: "Vòng bảng — Bảng A", a: "P1", b: "P2" }] };
+	ctx.applySeedToContent(curG, seedG);
+	assert.deepStrictEqual(curG.unassignedPlayers, ["P1", "P2", "P3"], "applySeedToContent group khôi phục unassignedPlayers");
+	assert.strictEqual(curG.groups.length, 2, "applySeedToContent group khôi phục số bảng");
+	assert.deepStrictEqual(curG.groups[0].players, [], "applySeedToContent group reset players trong bảng");
+	assert.deepStrictEqual(hostClone(curG.matches), [], "applySeedToContent group xoá matches (hostClone avoid vm-realm)");
+
+	/* (b) nút Reset group khi editMode — sandbox var-replace riêng (let editMode không set được qua ctx) */
+	const mainElG = makeEl("div");
+	const sandboxG = {
+		console: console,
+		document: {
+			body: makeEl("body"),
+			documentElement: makeEl("html"),
+			getElementById: function (id) { return id === "main" ? mainElG : makeEl("div"); },
+			createElement: function (tag) { return makeEl(tag); },
+			createTextNode: function (t) { return { nodeType: 3, textContent: String(t) }; },
+			createElementNS: function () { return makeEl("svg"); },
+			querySelector: function () { return null; },
+			querySelectorAll: function () { return []; }
+		},
+		location: { search: "" },
+		localStorage: { getItem: function () { return null; }, setItem() {}, removeItem() {} },
+		requestAnimationFrame: function () {},
+		prompt: function () { return null; },
+		confirm: function () { return true; },
+		alert: function () {},
+		fetch: function () { return new Promise(function () {}); },
+		addEventListener: function () {}
+	};
+	sandboxG.window = sandboxG;
+	const ctxG = createContext(sandboxG);
+	runInContext(customStageSrc, ctxG);
+	runInContext(readFileSync(join(__dirname, "swiss-core.js"), "utf8"), ctxG);
+	runInContext(appSrc
+		.replace("let data = null;", "var data = null;")
+		.replace("let activeId = null;", "var activeId = null;")
+		.replace("let editMode = false;", "var editMode = false;"), ctxG);
+	ctxG.saveData = function () {};
+	ctxG.editMode = true;
+	const stSec = ctxG.renderStandingsSection({ id: "g", format: "group", unassignedPlayers: ["P1"], groups: [{ name: "Bảng A", players: ["P1"] }], matches: [] });
+	assert.ok(allText(stSec).indexOf("↺ Reset") !== -1, "BXH group hiện nút Reset khi editMode");
+	console.log("✅ Bug 2: applySeedToContent group + nút Reset group — PASS");
+}
+
 console.log("✅ Tất cả test reset + smoke bracket đều PASS");

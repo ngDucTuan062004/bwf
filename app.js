@@ -285,6 +285,22 @@ function openEditContentModal(content) {
    RESET CONTENT — khôi phục nội dung đang mở về trạng thái seed
    ================================================================ */
 function applySeedToContent(content, seedContent) {
+	/* Nội dung đơn (group): khôi phục toàn bộ — unassignedPlayers + groups + xoá matches */
+	if (seedContent && seedContent.format === "group") {
+		content.label = seedContent.label;
+		content.format = "group";
+		content.scoringNote = seedContent.scoringNote;
+		content.unassignedPlayers = (seedContent.unassignedPlayers || []).slice();
+		content.groups = (seedContent.groups || []).map(function (g) {
+			return { name: g.name, players: (g.players || []).slice() };
+		});
+		content.matches = (seedContent.matches || []).slice();
+		content.unassignedPairs = [];
+		content.seedFilled = [];
+		content.participants = [];
+		content.customStage = false;
+		return;
+	}
 	if (seedContent) {
 		content.label = seedContent.label;
 		content.format = seedContent.format;
@@ -620,6 +636,18 @@ function renderStandingsSection(content) {
 		(content.groups || []).forEach(function (g) {
 			wrap.appendChild(renderGroupStandings(content, g, g.name));
 		});
+		if (editMode) {
+			wrap.appendChild(el("div", { class: "group-card" }, [
+				el("div", { class: "group-actions" }, [
+					el("button", {
+						class: "btn small outline danger-text", type: "button", onclick: function () {
+							if (!confirm("Reset nội dung này về trạng thái ban đầu? Mọi trận đã nhập sẽ bị xóa.")) return;
+							resetContentToSeed(content);
+						}
+					}, "↺ Reset"),
+				]),
+			]));
+		}
 	} else {
 		const swissMatches = content.matches.filter(function (m) { return isSwissStage(m.stage); });
 		const rows = computeStandings(content.participants || [], swissMatches);
