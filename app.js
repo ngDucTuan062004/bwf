@@ -727,6 +727,7 @@ function renderParticipantsSection(content) {
 				if (!content.unassignedPairs) content.unassignedPairs = [];
 				content.unassignedPairs.push(name);
 			} else {
+				if (!content.participants) content.participants = [];
 				content.participants.push(name);
 			}
 			saveData(); renderAll();

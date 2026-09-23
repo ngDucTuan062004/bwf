@@ -778,6 +778,17 @@ console.log("✅ isCustomStage: marker / tương thích 8 đội / không custom
 		assert.ok(i > last, "section \"" + t + "\" đứng sau section trước");
 		last = i;
 	});
+	/* BXH-thuần: slice "Bảng xếp hạng" → "Lịch thi đấu" KHÔNG chứa bracket/add-pair */
+	const bxhStart = mainText.indexOf("Bảng xếp hạng");
+	const bxhEnd = mainText.indexOf("Lịch thi đấu & kết quả");
+	const bxhSlice = mainText.slice(bxhStart, bxhEnd);
+	assert.ok(bxhSlice.indexOf("nhóm 8 đội") === -1, "BXH không chứa bracket (nhóm 8 đội)");
+	assert.ok(bxhSlice.indexOf("Sơ đồ thi đấu") === -1, "BXH không chứa bracket (Sơ đồ thi đấu)");
+	assert.ok(bxhSlice.indexOf("Tên cặp đấu mới") === -1, "BXH không chứa add-pair input");
+	/* slice "Sơ đồ / Bảng đấu" chứa bracket */
+	const bracketStart = mainText.indexOf("Sơ đồ / Bảng đấu");
+	const bracketSlice = mainText.slice(bracketStart, bxhStart);
+	assert.ok(bracketSlice.indexOf("nhóm 8 đội") !== -1, "Sơ đồ / Bảng đấu chứa bracket nhóm 8 đội");
 	console.log("✅ renderAll: 4 section đúng thứ tự (VĐV → Sơ đồ → BXH → Lịch thi đấu) — PASS");
 }
 
