@@ -692,7 +692,7 @@ function renderStandingsSection(content) {
 			const state = size === 6
 				? CustomStage.computeFixedState6(participants, swissMatches)
 				: CustomStage.computeFixedState(participants, swissMatches);
-			if (size === 6 || size === 8) {
+			if (!hasMatches) {
 				card.appendChild(el("p", { class: "standings-note" }, "Chưa có trận nào — xếp " + (size === 6 ? "6" : "8") + " cặp từ danh sách chờ vào ô Hạt Giống ở mục Sơ đồ / Bảng đấu để bắt đầu"));
 				card.appendChild(el("p", { class: "standings-note" }, "Xếp theo: Thắng → Hiệu số séc → Hiệu số điểm."));
 			} else {

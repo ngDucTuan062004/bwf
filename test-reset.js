@@ -744,6 +744,11 @@ console.log("✅ isCustomStage: marker / tương thích 8 đội / không custom
 	const sSwissText = allText(sSwiss);
 	assert.ok(sSwissText.indexOf("Chưa có trận") !== -1, "renderStandingsSection swiss hiện note BXH khi chưa có trận");
 	assert.ok(sSwissText.indexOf("Hiệu số điểm") !== -1, "renderStandingsSection swiss chưa có trận vẫn hiện note xếp hạng đôi (Hiệu số điểm)");
+	/* renderStandingsSection custom stage ĐÃ đánh hết (full trace) → phải hiện BXH thật, KHÔNG hiện note "Chưa có trận" */
+	const sCustom = ctx.renderStandingsSection({ format: "swiss", customStage: true, participants: teams6, matches: full6B });
+	const sCustomText = allText(sCustom);
+	assert.ok(sCustomText.indexOf("Chưa có trận") === -1, "custom stage đã đánh hết → KHÔNG được hiện note 'Chưa có trận'");
+	assert.ok(sCustomText.indexOf("A1") !== -1, "custom stage đã đánh hết → BXH phải hiện đội A1");
 	console.log("✅ renderParticipantsSection + renderBracketSection: swiss seed/chờ / group pool / bracket group / custom 8 đội / group card + standings — PASS");
 }
 
