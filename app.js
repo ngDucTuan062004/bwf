@@ -603,9 +603,11 @@ function renderGroupStandings(content, group, title) {
 	wrap.appendChild(el("h3", { text: title }));
 	if (!group.players || !group.players.length) {
 		wrap.appendChild(el("p", { class: "empty", style: "padding:12px 14px;" }, "Chưa có VĐV nào."));
+		wrap.appendChild(el("p", { class: "standings-note" }, "Xếp theo: Thắng → Hiệu số séc → Đối đầu trực tiếp."));
 	} else if (rows.every(function (r) { return r.played === 0; })) {
 		wrap.appendChild(buildStandingsTable(rows, null, null, null, null, true));
 		wrap.appendChild(el("p", { class: "standings-note" }, "Chưa có trận nào ghi nhận kết quả."));
+		wrap.appendChild(el("p", { class: "standings-note" }, "Xếp theo: Thắng → Hiệu số séc → Đối đầu trực tiếp."));
 	} else {
 		wrap.appendChild(buildStandingsTable(rows, null, null, null, null, true));
 		wrap.appendChild(el("p", { class: "standings-note" }, "Xếp theo: Thắng → Hiệu số séc → Đối đầu trực tiếp."));
@@ -692,14 +694,18 @@ function renderStandingsSection(content) {
 				: CustomStage.computeFixedState(participants, swissMatches);
 			if (size === 6 || size === 8) {
 				card.appendChild(el("p", { class: "standings-note" }, "Chưa có trận nào — xếp " + (size === 6 ? "6" : "8") + " cặp từ danh sách chờ vào ô Hạt Giống ở mục Sơ đồ / Bảng đấu để bắt đầu"));
+				card.appendChild(el("p", { class: "standings-note" }, "Xếp theo: Thắng → Hiệu số séc → Hiệu số điểm."));
 			} else {
 				card.appendChild(renderCustomRanking(state));
+				card.appendChild(el("p", { class: "standings-note" }, "Xếp theo: Thắng → Hiệu số séc → Hiệu số điểm."));
 			}
 		} else if (!content.participants || !content.participants.length) {
 			card.appendChild(el("p", { class: "empty", style: "padding:12px 14px;" }, "Chưa có cặp đấu nào."));
+			card.appendChild(el("p", { class: "standings-note" }, "Xếp theo: Thắng → Hiệu số séc → Hiệu số điểm."));
 		} else if (rows.every(function (r) { return r.played === 0; })) {
 			card.appendChild(buildStandingsTable(rows, null, null, null, openHistory, true));
 			card.appendChild(el("p", { class: "standings-note" }, "Chưa có trận nào ghi nhận kết quả."));
+			card.appendChild(el("p", { class: "standings-note" }, "Xếp theo: Thắng → Hiệu số séc → Hiệu số điểm."));
 		} else {
 			card.appendChild(buildStandingsTable(rows, null, null, null, openHistory, true));
 			card.appendChild(el("p", { class: "standings-note" }, "Xếp theo: Thắng → Hiệu số séc → Hiệu số điểm. Đội nghỉ vòng (bye) khi không thể ghép cặp tránh tái đấu."));
