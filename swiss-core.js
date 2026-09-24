@@ -40,7 +40,9 @@
 		return { w: w, l: l };
 	}
 
-	/* Bảng xếp hạng đầy đủ (hỗ trợ winner + sets), sort: Thắng → Hiệu số séc → Hiệu số điểm */
+	/* Bảng xếp hạng đầy đủ (hỗ trợ winner + sets).
+	   Mặc định sort: Thắng → Hiệu số séc → Hiệu số điểm.
+	   opts.useHeadToHead=true: bỏ hiệu số điểm, dùng Đối đầu trực tiếp (không có đối đầu → trả 0). */
 	function computeStandings(participants, matches, opts) {
 		opts = opts || {};
 		const useHeadToHead = opts.useHeadToHead === true;
