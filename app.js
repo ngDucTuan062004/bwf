@@ -370,8 +370,8 @@ async function resetContentToSeed(content) {
 /* ================================================================
    SCORE HELPERS
    ================================================================ */
-function computeStandings(participants, matches) {
-	return SwissCore.computeStandings(participants, matches);
+function computeStandings(participants, matches, opts) {
+	return SwissCore.computeStandings(participants, matches, opts);
 }
 
 function isSwissStage(stage) {
@@ -598,7 +598,7 @@ function renderGroupCard(content, group, title) {
 
 function renderGroupStandings(content, group, title) {
 	const groupMatches = content.matches.filter(function (m) { return m.stage === "Vòng bảng — " + group.name; });
-	const rows = computeStandings(group.players || [], groupMatches);
+	const rows = computeStandings(group.players || [], groupMatches, { useHeadToHead: true });
 	const wrap = el("div", { class: "group-card" });
 	wrap.appendChild(el("h3", { text: title }));
 	if (!group.players || !group.players.length) {
@@ -608,7 +608,7 @@ function renderGroupStandings(content, group, title) {
 		wrap.appendChild(el("p", { class: "standings-note" }, "Chưa có trận nào ghi nhận kết quả."));
 	} else {
 		wrap.appendChild(buildStandingsTable(rows, null, null, null, null, true));
-		wrap.appendChild(el("p", { class: "standings-note" }, "Xếp theo: Thắng → Hiệu số séc → Hiệu số điểm."));
+		wrap.appendChild(el("p", { class: "standings-note" }, "Xếp theo: Thắng → Hiệu số séc → Đối đầu trực tiếp."));
 	}
 	return wrap;
 }
