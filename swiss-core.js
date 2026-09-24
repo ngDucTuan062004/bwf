@@ -41,7 +41,9 @@
 	}
 
 	/* Bảng xếp hạng đầy đủ (hỗ trợ winner + sets), sort: Thắng → Hiệu số séc → Hiệu số điểm */
-	function computeStandings(participants, matches) {
+	function computeStandings(participants, matches, opts) {
+		opts = opts || {};
+		const useHeadToHead = opts.useHeadToHead === true;
 		const table = {};
 		participants.forEach(function (name) {
 			table[name] = { name: name, played: 0, wins: 0, losses: 0, setsFor: 0, setsAgainst: 0, ptsFor: 0, ptsAgainst: 0 };
@@ -64,10 +66,24 @@
 			r2.ptsFor += r.pf2; r2.ptsAgainst += r.pf1;
 			if (r.s1 > r.s2) { r1.wins++; r2.losses++; } else if (r.s2 > r.s1) { r2.wins++; r1.losses++; }
 		});
+		const h2h = {};
+		if (useHeadToHead) {
+			matches.forEach(function (m) {
+				if (!(m.p1 in table) || !(m.p2 in table)) return;
+				const w = matchWinner(m);
+				if (w) h2h[pairKey(m.p1, m.p2)] = w;
+			});
+		}
 		return Object.keys(table).map(function (k) { return table[k]; }).sort(function (a, b) {
 			return (b.wins - a.wins) ||
 				((b.setsFor - b.setsAgainst) - (a.setsFor - a.setsAgainst)) ||
-				((b.ptsFor - b.ptsAgainst) - (a.ptsFor - a.ptsAgainst));
+				(useHeadToHead
+					? (function () {
+						const w = h2h[pairKey(a.name, b.name)];
+						if (!w) return 0;
+						return w === a.name ? -1 : 1;
+					})()
+					: ((b.ptsFor - b.ptsAgainst) - (a.ptsFor - a.ptsAgainst)));
 		});
 	}
 
