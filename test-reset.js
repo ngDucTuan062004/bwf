@@ -857,12 +857,13 @@ console.log("✅ isCustomStage: marker / tương thích 8 đội / không custom
 }
 
 /* ============================================================
-   14. SSE client — connectRealtime: EventSource + reload khi event
+   14. Polling client — startPolling: setInterval fetch /api/data + guard
    ============================================================ */
 {
-	let esUrl = null;
-	let esListener = null;
+	let intervalFn = null;
+	let intervalMs = 0;
 	let fetchCount = 0;
+	let lastFetched = null;
 	const mainEl4 = makeEl("div");
 	const sandbox4 = {
 		console: console,
@@ -883,16 +884,14 @@ console.log("✅ isCustomStage: marker / tương thích 8 đội / không custom
 		confirm: function () { return true; },
 		alert: function () {},
 		addEventListener: function () {},
-		EventSource: function (url) {
-			esUrl = url;
-			this.addEventListener = function (type, fn) { if (type === "data-updated") esListener = fn; };
-			this.close = function () {};
-		},
-		fetch: function () {
+		setInterval: function (fn, ms) { intervalFn = fn; intervalMs = ms; return 42; },
+		clearInterval: function () {},
+		fetch: function (url) {
+			if (String(url).indexOf("data.json") !== -1 || !lastFetched) return new Promise(function () {}); /* loadData (lastFetched null) treo → init không chạy, mainEl trống & data giữ nguyên */
 			fetchCount++;
 			return Promise.resolve({
 				ok: true,
-				json: function () { return Promise.resolve({ event: {}, contents: [{ id: "x", label: "Mới", format: "swiss", customStage: true, participants: [], unassignedPairs: [], matches: [] }] }); }
+				json: function () { return Promise.resolve(lastFetched); }
 			});
 		},
 	};
@@ -908,23 +907,31 @@ console.log("✅ isCustomStage: marker / tương thích 8 đội / không custom
 	ctx4.saveData = function () {};
 	ctx4.data = { event: {}, contents: [{ id: "x", label: "Cũ", format: "swiss", customStage: true, participants: [], unassignedPairs: [], matches: [] }] };
 	ctx4.activeId = "x";
-	ctx4.connectRealtime();
-	assert.strictEqual(esUrl, "/api/events", "connectRealtime mở EventSource('/api/events')");
-	assert.ok(typeof esListener === "function", "connectRealtime đăng ký listener data-updated");
-	/* guard: vừa tự PUT <1s → không fetch */
-	fetchCount = 0; /* baseline: loadData() (tự chạy cuối app.js) đã fetch 1 lần khi load */
+	ctx4.startPolling();
+	fetchCount = 0; /* baseline: loadData() (tự chạy cuối app.js) treo khi lastFetched null → không count; reset cho chắc */
+	assert.strictEqual(intervalMs, 5000, "startPolling dùng setInterval 5000ms");
+	assert.ok(typeof intervalFn === "function", "startPolling đăng ký callback poll");
+
+	/* guard: vừa tự PUT <1s → poll bỏ qua (không fetch) */
 	ctx4.lastSaveAt = Date.now();
-	esListener();
-	assert.strictEqual(fetchCount, 0, "guard: không fetch khi chính mình vừa save <1s");
-	/* event từ người khác → fetch + renderAll */
+	intervalFn();
+	assert.strictEqual(fetchCount, 0, "guard: poll bỏ qua khi chính mình vừa save <1s");
+
+	/* dữ liệu giống → fetch nhưng không render lại (renderAll chỉ khi đổi) */
 	ctx4.lastSaveAt = 0;
-	esListener();
+	lastFetched = { event: {}, contents: [{ id: "x", label: "Cũ", format: "swiss", customStage: true, participants: [], unassignedPairs: [], matches: [] }] };
+	intervalFn();
 	setTimeout(function () {
-		assert.ok(fetchCount > 0, "event từ người khác → fetch lại /api/data");
-		/* assert section title render trong mainEl (label chỉ nằm trong tabsEl — KHÔNG assert label) */
-		assert.ok(allText(mainEl4).indexOf("Danh sách cặp đấu tham gia") !== -1, "renderAll chạy lại với dữ liệu mới (section 1 hiện)");
-		assert.ok(allText(mainEl4).indexOf("Sơ đồ / Bảng đấu") !== -1, "renderAll chạy lại (section 2 hiện)");
-		console.log("✅ SSE client: connectRealtime EventSource + reload khi event — PASS");
+		assert.ok(fetchCount > 0, "poll fetch /api/data");
+		assert.ok(allText(mainEl4).indexOf("Danh sách cặp đấu tham gia") === -1, "dữ liệu giống → KHÔNG render lại (mainEl trống)");
+
+		/* dữ liệu đổi → fetch + renderAll */
+		lastFetched = { event: {}, contents: [{ id: "x", label: "Mới", format: "swiss", customStage: true, participants: [], unassignedPairs: [], matches: [] }] };
+		intervalFn();
+		setTimeout(function () {
+			assert.ok(allText(mainEl4).indexOf("Danh sách cặp đấu tham gia") !== -1, "dữ liệu đổi → renderAll (section 1 hiện)");
+			console.log("✅ Polling client: startPolling setInterval 5s + guard + render khi đổi — PASS");
+		}, 50);
 	}, 50);
 }
 

@@ -138,30 +138,31 @@ function init() {
 	}
 	buildTabs();
 	renderAll();
-	if (!fetchFailed) connectRealtime();
+	if (!fetchFailed) startPolling();
 }
 
-function connectRealtime() {
-	if (typeof EventSource === "undefined") return;
+let pollTimer = null;
+function startPolling() {
+	if (typeof setInterval === "undefined") return;
+	if (pollTimer) return; /* tránh double interval */
+	pollTimer = setInterval(pollOnce, 5000);
+}
+
+async function pollOnce() {
+	if (Date.now() - lastSaveAt < 1000) return; /* chính mình vừa PUT → bỏ qua */
 	try {
-		const es = new EventSource("/api/events");
-		es.addEventListener("data-updated", async function () {
-			if (Date.now() - lastSaveAt < 1000) return; /* chính mình vừa PUT → bỏ qua */
-			try {
-				const res = await fetch("/api/data", { cache: "no-store" });
-				if (!res.ok) return;
-				const fresh = await res.json();
-				if (!fresh || !fresh.contents) return;
-				data = fresh;
-				if (!data.contents.some(function (c) { return c.id === activeId; })) {
-					activeId = data.contents.length ? data.contents[0].id : null;
-				}
-				buildTabs();
-				renderAll();
-			} catch (e) { /* giữ dữ liệu cũ */ }
-		});
-		es.onerror = function () { /* EventSource tự reconnect */ };
-	} catch (e) { /* không có SSE (file://) */ }
+		const res = await fetch("/api/data", { cache: "no-store" });
+		if (!res.ok) return;
+		const fresh = await res.json();
+		if (!fresh || !fresh.contents) return;
+		if (JSON.stringify(fresh) === JSON.stringify(data)) return; /* không đổi → không render */
+		data = fresh;
+		if (!data.contents.some(function (c) { return c.id === activeId; })) {
+			activeId = data.contents.length ? data.contents[0].id : null;
+		}
+		buildTabs();
+		renderAll();
+	} catch (e) { /* giữ dữ liệu cũ */ }
 }
 
 function renderFetchWarning() {
