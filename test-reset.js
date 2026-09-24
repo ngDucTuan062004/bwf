@@ -729,6 +729,7 @@ console.log("✅ isCustomStage: marker / tương thích 8 đội / không custom
 	const gStand = ctx.renderGroupStandings(gSec, gSec.groups[0], "Bảng A");
 	assert.ok(allText(gStand).indexOf("Bảng A") !== -1, "renderGroupStandings hiện tên bảng");
 	assert.ok(allText(gStand).indexOf("Chưa có trận") !== -1, "renderGroupStandings hiện note BXH khi chưa có trận");
+	assert.ok(allText(gStand).indexOf("Đối đầu trực tiếp") !== -1, "renderGroupStandings chưa có trận vẫn hiện note xếp hạng đơn (Đối đầu trực tiếp)");
 	/* renderGroupStandings: khi có trận → note xếp hạng đơn (Đối đầu trực tiếp, không có Hiệu số điểm) */
 	const gStand2 = ctx.renderGroupStandings(
 		{ format: "group", groups: [{ name: "Bảng A", players: ["P1", "P2"] }], matches: [{ stage: "Vòng bảng — Bảng A", p1: "P1", p2: "P2", sets: [[21, 15], [21, 18]] }] },
@@ -738,6 +739,11 @@ console.log("✅ isCustomStage: marker / tương thích 8 đội / không custom
 	const gStand2Text = allText(gStand2);
 	assert.ok(gStand2Text.indexOf("Đối đầu trực tiếp") !== -1, "note BXH đơn phải có 'Đối đầu trực tiếp'");
 	assert.ok(gStand2Text.indexOf("Hiệu số điểm") === -1, "note BXH đơn KHÔNG được nhắc 'Hiệu số điểm'");
+	/* renderStandingsSection swiss chưa có trận → note xếp hạng đôi (Hiệu số điểm) */
+	const sSwiss = ctx.renderStandingsSection({ format: "swiss", participants: teams8.slice(0, 6), matches: [] });
+	const sSwissText = allText(sSwiss);
+	assert.ok(sSwissText.indexOf("Chưa có trận") !== -1, "renderStandingsSection swiss hiện note BXH khi chưa có trận");
+	assert.ok(sSwissText.indexOf("Hiệu số điểm") !== -1, "renderStandingsSection swiss chưa có trận vẫn hiện note xếp hạng đôi (Hiệu số điểm)");
 	console.log("✅ renderParticipantsSection + renderBracketSection: swiss seed/chờ / group pool / bracket group / custom 8 đội / group card + standings — PASS");
 }
 
