@@ -92,9 +92,9 @@ const server = createServer(async function (req, res) {
 		}
 	}
 
-	/* ---- Serve tĩnh ---- */
+	/* ---- Serve tĩnh (frontend nằm trong public/) ---- */
 	let filePath = path === '/' ? '/index.html' : path;
-	filePath = join(__dirname, filePath);
+	filePath = join(__dirname, 'public', filePath);
 	const rel = relative(__dirname, filePath);
 	if (rel.startsWith('..') || isAbsolute(rel)) {
 		res.writeHead(403);

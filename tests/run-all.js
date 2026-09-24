@@ -1,11 +1,24 @@
-/* test-reset.js — chạy: node test-reset.js (ESM vì package type:module)
-   Harness: stub browser globals → load custom-stage.js + app.js vào vm context →
-   test applySeedToContent (reset) + podium gating (chỉ hiện ranking khi complete). */
+/* run-all.js — chạy: node tests/run-all.js (ESM vì package type:module)
+   Gộp 4 test file cũ theo thứ tự: reset → swiss → custom-stage → bracket.
+   Mỗi phần nằm trong block riêng ({...}) để tránh xung đột biến/function top-level trùng tên.
+   Đường dẫn tới module đã đổi sang ../public/ vì app.js/swiss-core.js/custom-stage.js nằm trong public/. */
+
 import assert from "node:assert";
 import { readFileSync } from "node:fs";
 import { createContext, runInContext } from "node:vm";
 import { fileURLToPath } from "node:url";
 import { join, dirname } from "node:path";
+import "../public/swiss-core.js";
+import "../public/custom-stage.js";
+
+
+
+/* ============================================================
+   1/4 — test-reset.js (harness: stub browser globals → load public/{custom-stage,swiss-core,app}.js)
+   ============================================================ */
+{/* test-reset.js — chạy: node test-reset.js (ESM vì package type:module)
+   Harness: stub browser globals → load custom-stage.js + app.js vào vm context →
+   test applySeedToContent (reset) + podium gating (chỉ hiện ranking khi complete). */
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -78,10 +91,10 @@ const sandbox = {
 sandbox.window = sandbox;
 const ctx = createContext(sandbox);
 
-const customStageSrc = readFileSync(join(__dirname, "custom-stage.js"), "utf8");
-const appSrc = readFileSync(join(__dirname, "app.js"), "utf8");
+const customStageSrc = readFileSync(join(__dirname, "../public/custom-stage.js"), "utf8");
+const appSrc = readFileSync(join(__dirname, "../public/app.js"), "utf8");
 runInContext(customStageSrc, ctx);
-runInContext(readFileSync(join(__dirname, "swiss-core.js"), "utf8"), ctx);
+runInContext(readFileSync(join(__dirname, "../public/swiss-core.js"), "utf8"), ctx);
 runInContext(appSrc, ctx);
 
 const applySeedToContent = ctx.applySeedToContent;
@@ -537,7 +550,7 @@ assert.strictEqual(c8.unassignedPairs.length, 0, "danh sách chờ rỗng sau kh
 	sandbox2.window = sandbox2;
 	const ctx2 = createContext(sandbox2);
 	runInContext(customStageSrc, ctx2);
-	runInContext(readFileSync(join(__dirname, "swiss-core.js"), "utf8"), ctx2);
+	runInContext(readFileSync(join(__dirname, "../public/swiss-core.js"), "utf8"), ctx2);
 	/* editMode là let lexical → không set qua ctx. Load lại với var để test handler edit-mode. */
 	runInContext(appSrc.replace("let editMode = false;", "var editMode = false;"), ctx2);
 	ctx2.saveData = function () {};
@@ -781,7 +794,7 @@ console.log("✅ isCustomStage: marker / tương thích 8 đội / không custom
 	sandbox3.window = sandbox3;
 	const ctx3 = createContext(sandbox3);
 	runInContext(customStageSrc, ctx3);
-	runInContext(readFileSync(join(__dirname, "swiss-core.js"), "utf8"), ctx3);
+	runInContext(readFileSync(join(__dirname, "../public/swiss-core.js"), "utf8"), ctx3);
 	runInContext(appSrc
 		.replace("let data = null;", "var data = null;")
 		.replace("let activeId = null;", "var activeId = null;")
@@ -864,7 +877,7 @@ console.log("✅ isCustomStage: marker / tương thích 8 đội / không custom
 	sandboxG.window = sandboxG;
 	const ctxG = createContext(sandboxG);
 	runInContext(customStageSrc, ctxG);
-	runInContext(readFileSync(join(__dirname, "swiss-core.js"), "utf8"), ctxG);
+	runInContext(readFileSync(join(__dirname, "../public/swiss-core.js"), "utf8"), ctxG);
 	runInContext(appSrc
 		.replace("let data = null;", "var data = null;")
 		.replace("let activeId = null;", "var activeId = null;")
@@ -918,7 +931,7 @@ console.log("✅ isCustomStage: marker / tương thích 8 đội / không custom
 	sandbox4.window = sandbox4;
 	const ctx4 = createContext(sandbox4);
 	runInContext(customStageSrc, ctx4);
-	runInContext(readFileSync(join(__dirname, "swiss-core.js"), "utf8"), ctx4);
+	runInContext(readFileSync(join(__dirname, "../public/swiss-core.js"), "utf8"), ctx4);
 	runInContext(appSrc
 		.replace("let data = null;", "var data = null;")
 		.replace("let activeId = null;", "var activeId = null;")
@@ -958,3 +971,334 @@ console.log("✅ isCustomStage: marker / tương thích 8 đội / không custom
 }
 
 console.log("✅ Tất cả test reset + smoke bracket đều PASS");
+}
+
+/* ============================================================
+   2/4 — test-swiss.js (SwissCore pairRound / computeStandings / H2H)
+   ============================================================ */
+{/* test-swiss.js — chạy: node test-swiss.js (ESM vì package type:module) */
+const S = globalThis.SwissCore;
+
+function mk(p1, p2, sets, winner) {
+	const m = { stage: "Vòng 1", p1: p1, p2: p2, sets: sets || null };
+	if (winner) m.winner = winner;
+	return m;
+}
+/* QUAN TRỌNG: sort từng cặp TRƯỚC khi so sánh (thứ tự [a,b] không cố định) */
+function names(pairs) { return pairs.map(function (p) { return p.slice().sort().join("|"); }).sort(); }
+
+/* 1. Vòng 1 ghép tuần tự 6 đội */
+let r = S.pairRound(["T1","T2","T3","T4","T5","T6"], [], 1);
+assert.deepStrictEqual(names(r.pairs), ["T1|T2", "T3|T4", "T5|T6"]);
+assert.deepStrictEqual(r.bye, []);
+
+/* 2. Vòng 1 với 5 đội → 1 đội bye */
+r = S.pairRound(["T1","T2","T3","T4","T5"], [], 1);
+assert.deepStrictEqual(names(r.pairs), ["T1|T2", "T3|T4"]);
+assert.deepStrictEqual(r.bye, ["T5"]);
+
+/* 3. Vòng 2: gom nhóm theo thành tích + float nhóm lẻ (T3 1-0 float gặp T4 0-1) */
+const m1 = [mk("T1","T2",[[21,15],[21,18]]), mk("T3","T4",[[21,10],[18,21],[15,12]]), mk("T5","T6",[[21,19],[21,17]])];
+r = S.pairRound(["T1","T2","T3","T4","T5","T6"], m1, 2);
+assert.deepStrictEqual(names(r.pairs), ["T1|T5", "T2|T4", "T3|T6"]);
+assert.deepStrictEqual(r.bye, []);
+
+/* 4. Tránh tái đấu: 4 đội, vòng 3 phải ghép cặp chưa gặp (T1-T4, T2-T3) */
+const m2 = [
+	mk("T1","T2",[[21,15],[21,18]]), mk("T3","T4",[[21,10],[21,12]]),
+	mk("T1","T3",[[21,11],[21,13]]), mk("T2","T4",[[21,9],[21,14]])
+];
+r = S.pairRound(["T1","T2","T3","T4"], m2, 3);
+assert.deepStrictEqual(names(r.pairs), ["T1|T4", "T2|T3"]);
+assert.deepStrictEqual(r.bye, []);
+
+/* 5. 8 đội vòng 1 → 4 cặp */
+r = S.pairRound(["A","B","C","D","E","F","G","H"], [], 1);
+assert.strictEqual(r.pairs.length, 4);
+assert.deepStrictEqual(r.bye, []);
+
+/* 6. computeStandings: trận có winner (chọn nhanh) vẫn đếm thắng/thua */
+const rows = S.computeStandings(["T1","T2"], [mk("T1","T2", null, "T1")]);
+assert.strictEqual(rows[0].name, "T1");
+assert.strictEqual(rows[0].wins, 1);
+assert.strictEqual(rows[1].losses, 1);
+
+/* 7. computeStandings: trận có sets giữ nguyên hành vi cũ */
+const rows2 = S.computeStandings(["T1","T2"], [mk("T1","T2",[[21,15],[18,21],[15,10]])]);
+assert.strictEqual(rows2[0].name, "T1");
+assert.strictEqual(rows2[0].setsFor, 2);
+assert.strictEqual(rows2[0].setsAgainst, 1);
+
+/* 8. groupByRecord sắp theo wins giảm dần */
+const g = S.groupByRecord(["T1","T2","T3","T4"], m1);
+assert.deepStrictEqual(g.map(function (x) { return x.record; }), ["1-0", "0-1"]);
+
+/* 9. matchWinner: ưu tiên winner, fallback sets */
+assert.strictEqual(S.matchWinner(mk("A","B", null, "B")), "B");
+assert.strictEqual(S.matchWinner(mk("A","B",[[21,10],[21,12]])), "A");
+assert.strictEqual(S.matchWinner(mk("A","B", null)), null);
+assert.strictEqual(S.matchWinner(mk("A","B",[[21,10],[21,12]], "B")), "B"); // winner ưu tiên kể cả khi có sets
+
+/* 10. Bye khi mọi cặp đã gặp nhau */
+const allPlayed = [
+	mk("T1","T2",[[21,10],[21,10]]), mk("T3","T4",[[21,10],[21,10]]),
+	mk("T1","T3",[[21,10],[21,10]]), mk("T2","T4",[[21,10],[21,10]]),
+	mk("T1","T4",[[21,10],[21,10]]), mk("T2","T3",[[21,10],[21,10]])
+];
+r = S.pairRound(["T1","T2","T3","T4"], allPlayed, 4);
+assert.strictEqual(r.pairs.length, 0);
+assert.strictEqual(r.bye.length, 4);
+
+/* 11. Full run 8 đội × 5 vòng: đủ 20 trận (4/vòng), không tái đấu */
+function fullRun(n, rounds) {
+	const participants = Array.from({ length: n }, function (_, i) { return "T" + (i + 1); });
+	const matches = [];
+	for (let r = 1; r <= rounds; r++) {
+		const res = S.pairRound(participants, matches, r);
+		res.pairs.forEach(function (p) {
+			matches.push({ stage: "Vòng " + r, p1: p[0], p2: p[1], sets: [[21, 15], [21, 18]] });
+		});
+	}
+	return matches;
+}
+function assertNoRematch(matches, label) {
+	const seen = new Set();
+	matches.forEach(function (m) {
+		const k = [m.p1, m.p2].sort().join("|");
+		assert.ok(!seen.has(k), label + " bị tái đấu: " + k);
+		seen.add(k);
+	});
+}
+const m8 = fullRun(8, 5);
+assert.strictEqual(m8.length, 20, "8 đội × 5 vòng phải đủ 20 trận, thực tế " + m8.length);
+assertNoRematch(m8, "8 đội");
+
+/* 12. Full run 6 đội × 5 vòng: không tái đấu, ≥ 13 trận (bye chỉ khi bắt buộc) */
+const m6 = fullRun(6, 5);
+assert.ok(m6.length >= 13, "6 đội × 5 vòng nên có ≥13 trận, thực tế " + m6.length);
+assertNoRematch(m6, "6 đội");
+
+/* 13. useHeadToHead: A và C cùng 2-1, cùng hiệu số séc +2, A thắng đối đầu C.
+   Default (điểm) → C trên (điểm cao hơn). H2H → A trên (thắng đối đầu). */
+const h2hMatches = [
+	mk("A", "C", [[21, 18], [17, 21], [15, 14]]), /* A thắng đối đầu C 2-1 (A +1 séc) */
+	mk("A", "B", [[21, 15], [21, 18]]),            /* A 2-0 (+2 séc) */
+	mk("A", "D", [[18, 21], [21, 19], [13, 15]]),  /* D thắng 2-1 (A -1 séc) */
+	mk("C", "B", [[21, 15], [21, 18]]),            /* C 2-0 (+2 séc) */
+	mk("C", "D", [[21, 19], [19, 21], [15, 10]]),  /* C thắng 2-1 (+1 séc) */
+	mk("B", "D", [[21, 15], [18, 21], [15, 11]]),  /* D thắng 2-1 (+1 séc) */
+];
+/* A: 2-1, sets 5-3 (+2), điểm +6 · C: 2-1, sets 5-3 (+2), điểm +14 · D: 2-1 (+1 séc) */
+const defaultRows = S.computeStandings(["A", "B", "C", "D"], h2hMatches);
+assert.strictEqual(defaultRows[0].name, "C", "mặc định: C điểm cao hơn → C trên (điểm vẫn dùng)");
+const h2hRows = S.computeStandings(["A", "B", "C", "D"], h2hMatches, { useHeadToHead: true });
+assert.strictEqual(h2hRows[0].name, "A", "H2H: A thắng đối đầu C → A xếp trên dù điểm thấp");
+assert.strictEqual(h2hRows[1].name, "C");
+
+/* 14. useHeadToHead: không có trận đối đầu giữa các đội hòa → giữ nguyên thứ tự (không crash) */
+const noH2h = S.computeStandings(["A", "B", "C", "D"], [
+	mk("A", "B", [[21, 15], [18, 21], [15, 10]]),
+	mk("C", "D", [[21, 10], [21, 12]]),
+], { useHeadToHead: true });
+assert.strictEqual(noH2h.length, 4, "không có đối đầu → vẫn đủ 4 đội, không crash");
+
+/* 15. Mặc định (không opts) → vẫn dùng hiệu số điểm (hành vi cũ, đôi không đổi).
+   Dùng lại h2hMatches: A và C hòa wins + séc nhưng C điểm cao hơn → C trên. */
+assert.strictEqual(defaultRows[0].name, "C", "mặc định vẫn xếp theo hiệu số điểm → C trên A");
+
+console.log("✅ Tất cả 15 nhóm test Swiss đều PASS");
+}
+
+/* ============================================================
+   3/4 — test-custom-stage.js (CustomStage fixed bracket 8-team / 6-team A-B)
+   ============================================================ */
+{/* test-custom-stage.js — chạy: node test-custom-stage.js (ESM vì package type:module) */
+const S = globalThis.CustomStage;
+
+const teams8 = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8"];
+
+function mk(p1, p2, pos, round, winner) {
+	return { stage: "Vòng " + round, pos: pos, p1: p1, p2: p2, sets: [[21, 15], [21, 18]], winner: winner };
+}
+
+/* Test 1: R1 từ seed order (chưa có trận) */
+let b = S.buildFixedBracket(teams8, []);
+assert.deepStrictEqual(b.filter(function (x) { return x.round === 1; }).map(function (x) { return x.teams; }), [
+	["T1", "T2"], ["T3", "T4"], ["T5", "T6"], ["T7", "T8"]
+]);
+
+/* Test 2: R2 nhánh thắng/thua từ kết quả R1 */
+const m = [
+	mk("T1", "T2", "R1.1", 1, "T1"), mk("T3", "T4", "R1.2", 1, "T3"),
+	mk("T5", "T6", "R1.3", 1, "T5"), mk("T7", "T8", "R1.4", 1, "T7"),
+];
+b = S.buildFixedBracket(teams8, m);
+const byPos = {};
+b.forEach(function (x) { byPos[x.pos] = x; });
+assert.deepStrictEqual(byPos["R2.1"].teams, ["T1", "T3"]);
+assert.deepStrictEqual(byPos["R2.2"].teams, ["T5", "T7"]);
+assert.deepStrictEqual(byPos["R2.3"].teams, ["T2", "T4"]);
+assert.deepStrictEqual(byPos["R2.4"].teams, ["T6", "T8"]);
+
+/* Test 3: full trace (khớp aaa.md) → T1 hạng 1, T3 hạng 2, T5 hạng 3 */
+const full = [
+	mk("T1", "T2", "R1.1", 1, "T1"), mk("T3", "T4", "R1.2", 1, "T3"),
+	mk("T5", "T6", "R1.3", 1, "T5"), mk("T7", "T8", "R1.4", 1, "T7"),
+	mk("T1", "T3", "R2.1", 2, "T1"), mk("T5", "T7", "R2.2", 2, "T5"),
+	mk("T2", "T4", "R2.3", 2, "T2"), mk("T6", "T8", "R2.4", 2, "T6"),
+	mk("T3", "T2", "R3.1", 3, "T3"), mk("T7", "T6", "R3.2", 3, "T7"),
+	mk("T3", "T7", "R4.1", 4, "T3"),
+	mk("T1", "T5", "R6.1", 6, "T1"),
+	mk("T3", "T5", "R5.1", 5, "T3"),
+	mk("T1", "T3", "R7.1", 7, "T1"),
+];
+let st = S.computeFixedState(teams8, full);
+assert.strictEqual(st.phase, "complete");
+assert.deepStrictEqual(st.ranking.slice(0, 3), ["T1", "T3", "T5"]);
+assert.deepStrictEqual(st.eliminated.slice().sort(), ["T2", "T4", "T6", "T7", "T8"].sort());
+
+/* Test 4: partial — sau R1, phase in-progress, chưa loại ai */
+st = S.computeFixedState(teams8, m);
+assert.strictEqual(st.phase, "in-progress");
+assert.deepStrictEqual(st.eliminated, []);
+assert.deepStrictEqual(st.ranking.slice(0, 3), ["T1", "T3", "T5", "T7"].slice(0, 3));
+
+/* Test 5: match không có pos → derive từ stage + thứ tự */
+const legacy = [
+	{ stage: "Vòng 1", p1: "T1", p2: "T2", winner: "T1" },
+	{ stage: "Vòng 1", p1: "T3", p2: "T4", winner: "T3" },
+];
+b = S.buildFixedBracket(teams8, legacy);
+const byPos2 = {};
+b.forEach(function (x) { byPos2[x.pos] = x; });
+assert.deepStrictEqual(byPos2["R2.1"].teams, ["T1", "T3"]);
+
+/* ============================================================
+   6-team flexible bracket (10 trận, 5 vòng) — Case A / Case B
+   Case A: đội thua R1.2 (0-1) thắng trận chéo R2.1
+   Case B: đội thắng R1.1 (1-0) thắng trận chéo R2.1
+   ============================================================ */
+const teams6 = ["A1", "A2", "A3", "A4", "A5", "A6"];
+const r1_6 = [
+	mk("A1", "A2", "R1.1", 1, "A1"), mk("A3", "A4", "R1.2", 1, "A3"), mk("A5", "A6", "R1.3", 1, "A5"),
+];
+/* R2.1 = W R1.1 (A1) vs L R1.2 (A4) — trận chéo */
+const caseA_r2 = [
+	mk("A1", "A4", "R2.1", 2, "A4"), mk("A3", "A5", "R2.2", 2, "A3"), mk("A2", "A6", "R2.3", 2, "A2"),
+];
+const caseB_r2 = [
+	mk("A1", "A4", "R2.1", 2, "A1"), mk("A3", "A5", "R2.2", 2, "A3"), mk("A2", "A6", "R2.3", 2, "A2"),
+];
+
+/* Test 6: pickStructure6 — chọn case theo kết quả trận chéo R2.1 */
+assert.strictEqual(S.pickStructure6(r1_6.concat(caseA_r2)), S.STRUCTURE6_A, "R2.1 đội 0-1 (thua R1.2) thắng → Case A");
+assert.strictEqual(S.pickStructure6(r1_6.concat(caseB_r2)), S.STRUCTURE6_B, "R2.1 đội 1-0 (thắng R1.1) thắng → Case B");
+assert.strictEqual(S.pickStructure6(r1_6), S.STRUCTURE6_A, "chưa có kết quả R2.1 → mặc định Case A");
+
+/* Test 7: buildFixedBracket6 — Case A feeds (R3/R4/R5) */
+let b6 = S.buildFixedBracket6(teams6, r1_6.concat(caseA_r2));
+let by6 = {};
+b6.forEach(function (x) { by6[x.pos] = x; });
+assert.deepStrictEqual(by6["R3.1"].teams, ["A1", "A2"], "Case A R3.1 = L R2.1 vs W R2.3 (1-1 vs 1-1)");
+assert.deepStrictEqual(by6["R3.2"].teams, ["A4", "A5"], "Case A R3.2 = W R2.1 vs L R2.2 (1-1 vs 1-1)");
+assert.deepStrictEqual(by6["R5.1"].teams, ["A3", null], "Case A R5.1 = W R2.2 (2-0) vs W R4.1 (chưa có)");
+
+/* Test 8: buildFixedBracket6 — Case B feeds */
+b6 = S.buildFixedBracket6(teams6, r1_6.concat(caseB_r2));
+by6 = {};
+b6.forEach(function (x) { by6[x.pos] = x; });
+assert.deepStrictEqual(by6["R3.1"].teams, ["A1", "A3"], "Case B R3.1 = W R2.1 vs W R2.2 (2-0 vs 2-0)");
+assert.deepStrictEqual(by6["R3.2"].teams, ["A5", "A2"], "Case B R3.2 = L R2.2 vs W R2.3 (1-1 vs 1-1)");
+assert.deepStrictEqual(by6["R5.1"].teams, [null, null], "Case B R5.1 chưa có team (cần kết quả R3.1/R4.1)");
+
+/* Test 9: computeFixedState6 — Case A full trace → A1 vô địch, A3 hạng 2, A4 hạng 3 */
+const fullA = r1_6.concat(caseA_r2).concat([
+	mk("A1", "A2", "R3.1", 3, "A1"), mk("A4", "A5", "R3.2", 3, "A4"),
+	mk("A1", "A4", "R4.1", 4, "A1"),
+	mk("A3", "A1", "R5.1", 5, "A1"),
+]);
+let st6 = S.computeFixedState6(teams6, fullA);
+assert.strictEqual(st6.caseId, "A");
+assert.strictEqual(st6.phase, "complete");
+assert.deepStrictEqual(st6.ranking.slice(0, 3), ["A1", "A3", "A4"], "Case A: A1 vô địch, A3 nhì, A4 ba");
+assert.deepStrictEqual(st6.eliminated.slice().sort(), ["A2", "A4", "A5", "A6"].sort(), "Case A loại: A2, A4, A5, A6 (mọi đội ngoài top 2)");
+
+/* Test 10: computeFixedState6 — Case B full trace → A1 vô địch, A3 nhì, A2 ba */
+const fullB = r1_6.concat(caseB_r2).concat([
+	mk("A1", "A3", "R3.1", 3, "A1"), mk("A5", "A2", "R3.2", 3, "A2"),
+	mk("A3", "A2", "R4.1", 4, "A3"),
+	mk("A1", "A3", "R5.1", 5, "A1"),
+]);
+st6 = S.computeFixedState6(teams6, fullB);
+assert.strictEqual(st6.caseId, "B");
+assert.strictEqual(st6.phase, "complete");
+assert.deepStrictEqual(st6.ranking.slice(0, 3), ["A1", "A3", "A2"], "Case B: A1 vô địch, A3 nhì, A2 ba");
+assert.deepStrictEqual(st6.eliminated.slice().sort(), ["A2", "A4", "A5", "A6"].sort(), "Case B loại: A2, A4, A5, A6 (mọi đội ngoài top 2)");
+
+/* Test 11: computeFixedState6 — sau R2 (chưa R3) → in-progress, loại đúng theo case */
+st6 = S.computeFixedState6(teams6, r1_6.concat(caseA_r2));
+assert.strictEqual(st6.phase, "in-progress");
+assert.deepStrictEqual(st6.eliminated.slice().sort(), ["A6"].sort(), "Case A sau R2 loại A6 (0-2)");
+st6 = S.computeFixedState6(teams6, r1_6.concat(caseB_r2));
+assert.deepStrictEqual(st6.eliminated.slice().sort(), ["A4", "A6"].sort(), "Case B sau R2 loại A4, A6 (0-2)");
+
+console.log("test-custom-stage: OK (" + S.buildFixedBracket.name + " / " + S.computeFixedState.name + " / 6-team A/B)");
+}
+
+/* ============================================================
+   4/4 — test-bracket.js (buildSwissBracket grouping / bye)
+   ============================================================ */
+{/* test-bracket.js — chạy: node test-bracket.js */
+const S = globalThis.SwissCore;
+
+/* mk: stage mặc định "Vòng 1", truyền stage để tạo trận vòng khác */
+function mk(p1, p2, sets, winner, stage) {
+	const m = { stage: stage || "Vòng 1", p1: p1, p2: p2, sets: sets || null };
+	if (winner) m.winner = winner;
+	return m;
+}
+
+/* 1. Vòng 1, 6 đội chưa có kết quả: 1 nhóm "0-0", 3 trận theo thứ tự participants */
+const m0 = [
+	mk("T1","T2"), mk("T3","T4"), mk("T5","T6")
+];
+let b = S.buildSwissBracket(["T1","T2","T3","T4","T5","T6"], m0, 5);
+assert.strictEqual(b.length, 5);
+assert.strictEqual(b[0].groups.length, 1);
+assert.strictEqual(b[0].groups[0].record, "0-0");
+assert.strictEqual(b[0].groups[0].matches.length, 3);
+assert.deepStrictEqual(b[0].groups[0].matches.map(function (m) { return m.p1; }), ["T1","T3","T5"]);
+
+/* 2. Sau vòng 1 (T1,T3,T5 thắng) + vòng 2 (T1|T5, T2|T4, T3|T6):
+      vòng 2 gom nhóm 1-0 / 0-1, đội thắng lên nhánh thắng */
+const m1 = [
+	mk("T1","T2",[[21,15],[21,18]]), mk("T3","T4",[[21,10],[18,21],[15,12]]), mk("T5","T6",[[21,19],[21,17]])
+];
+const m2 = [
+	mk("T1","T5", null, null, "Vòng 2"), mk("T2","T4", null, null, "Vòng 2"), mk("T3","T6", null, null, "Vòng 2")
+];
+b = S.buildSwissBracket(["T1","T2","T3","T4","T5","T6"], m1.concat(m2), 5);
+assert.deepStrictEqual(b[1].groups.map(function (g) { return g.record; }), ["1-0", "0-1"]);
+/* T1|T5 (cả 2 1-0) + T3|T6 (top T3 1-0) → nhóm 1-0; T2|T4 (cả 2 0-1) → nhóm 0-1 */
+assert.strictEqual(b[1].groups[0].matches.length, 2);
+assert.strictEqual(b[1].groups[1].matches.length, 1);
+
+/* 3. Bye: 5 đội, vòng 1 có T5 bye (không trận vòng 1, có trận vòng 2) */
+const mBye = [
+	mk("T1","T2",[[21,15],[21,18]]), mk("T3","T4",[[21,10],[21,12]]),
+	mk("T1","T5", null, null, "Vòng 2"), mk("T2","T3", null, null, "Vòng 2")
+];
+b = S.buildSwissBracket(["T1","T2","T3","T4","T5"], mBye, 2);
+assert.deepStrictEqual(b[0].bye, ["T5"]);
+
+/* 4. Không có trận nào: 5 vòng đều rỗng */
+b = S.buildSwissBracket(["A","B"], [], 5);
+assert.strictEqual(b.length, 5);
+assert.ok(b.every(function (r) { return r.groups.length === 0 && r.bye.length === 0; }));
+
+/* 5. Không làm hỏng API cũ */
+assert.strictEqual(typeof S.pairRound, "function");
+assert.strictEqual(typeof S.computeStandings, "function");
+
+console.log("✅ Tất cả test bracket đều PASS");
+}
