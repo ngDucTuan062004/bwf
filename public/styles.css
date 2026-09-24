@@ -1978,3 +1978,162 @@ details.howto code {
 	gap: 6px;
 	margin-bottom: 10px;
 }
+
+/* ================================================================
+   RESPONSIVE — mobile <768px (chỉ đổi bố cục, giữ nguyên theme)
+   ================================================================ */
+@media (max-width: 767px) {
+
+	/* ---------- header gọn gàng, cho phép wrap ---------- */
+	header.site {
+		padding: 14px 14px 0;
+	}
+
+	.header-right {
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	.event-dates {
+		width: 100%;
+	}
+
+	.brand {
+		font-size: 13.5px;
+	}
+
+	h1.title {
+		font-size: clamp(24px, 7vw, 30px);
+	}
+
+	p.subtitle {
+		font-size: 13.5px;
+		margin-bottom: 14px;
+	}
+
+	.edit-toggle {
+		min-height: 40px;
+		padding: 8px 14px;
+	}
+
+	nav.tabs button {
+		padding: 10px 12px 12px;
+	}
+
+	/* ---------- padding chung ---------- */
+	main,
+	.banner-wrap,
+	.fetch-warning,
+	footer {
+		padding-left: 14px;
+		padding-right: 14px;
+	}
+
+	main {
+		padding-top: 16px;
+	}
+
+	/* ---------- bảng xếp hạng / bảng đấu: cuộn ngang, nhẹ hơn ---------- */
+	.groups-wrap {
+		grid-template-columns: 1fr;
+	}
+
+	.group-card h3,
+	.pool-head {
+		padding: 8px 12px;
+	}
+
+	table.standings {
+		display: block;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		white-space: nowrap;
+	}
+
+	table.standings th,
+	table.standings td {
+		padding: 6px 8px;
+	}
+
+	.swiss-bracket-track,
+	.fixed-bracket .swiss-bracket-track {
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.match-card {
+		padding: 11px 13px;
+	}
+
+	/* ---------- form chỉnh sửa / thêm trận: xếp dọc 1 cột ---------- */
+	.edit-row {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 10px;
+	}
+
+	.edit-row label,
+	.add-match-grid label {
+		width: 100%;
+	}
+
+	.edit-row input[type="text"],
+	.add-match-grid input,
+	.add-match-grid select {
+		width: 100%;
+	}
+
+	.set-edit-group {
+		justify-content: flex-start;
+	}
+
+	.match-edit-actions {
+		justify-content: flex-start;
+	}
+
+	.add-match-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.add-player-row {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.add-player-row input {
+		width: 100%;
+	}
+
+	/* ---------- nút: touch target lớn hơn ---------- */
+	.btn,
+	.btn.small {
+		min-height: 40px;
+		padding: 9px 14px;
+	}
+
+	.btn.danger-text {
+		min-height: 40px;
+		padding: 8px 10px;
+	}
+
+	.del-player,
+	.pool-chip-del,
+	.modal-close,
+	.seed-unassign {
+		padding: 8px;
+		margin: -8px;
+	}
+
+	/* ---------- modal gọn hơn ---------- */
+	.modal-overlay,
+	.modal-backdrop {
+		padding: 12px;
+	}
+
+	.modal {
+		padding: 14px;
+	}
+
+	.modal-card-teams {
+		flex-wrap: wrap;
+	}
+}
