@@ -16,9 +16,14 @@ Trang web động theo dõi lịch thi đấu, bảng xếp hạng và kết qu�
 ## Cấu trúc
 
 ```
-├── index.html        # Cấu trúc trang
-├── styles.css        # Toàn bộ CSS
-├── app.js            # Toàn bộ logic frontend
+├── public/           # Frontend (static — Vercel serve từ thư mục này)
+│   ├── index.html        # Cấu trúc trang
+│   ├── styles.css        # Toàn bộ CSS
+│   ├── app.js            # Toàn bộ logic frontend
+│   ├── swiss-core.js     # Thuật toán Swiss stage (thuần, không DOM)
+│   └── custom-stage.js   # Sơ đồ cố định 8 đội + 6 đội A/B (thuần, không DOM)
+├── tests/
+│   └── run-all.js    # Toàn bộ test gộp (chạy: npm test)
 ├── data.json         # Dữ liệu mặc định (seed khi database chưa có dữ liệu)
 ├── server.js         # Local dev server (Node thuần — chỉ dùng khi chạy local)
 ├── api/
@@ -39,6 +44,14 @@ npm run dev
 Mở `http://localhost:3000`. Server local tự serve tĩnh + API giả lập:
 - Mật khẩu admin mặc định: `admin` (đổi bằng env `ADMIN_PASSWORD`)
 - Dữ liệu chỉnh sửa được ghi vào `data-store.json` (đã ignore git) — không ảnh hưởng dữ liệu thật
+
+## Chạy test
+
+```bash
+npm test
+```
+
+`tests/run-all.js` gộp toàn bộ test (reset dữ liệu, Swiss, custom-stage, bracket) — không cần server.
 
 ## Deploy lên Vercel
 
