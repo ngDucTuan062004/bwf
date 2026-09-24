@@ -50,7 +50,7 @@ function loadData() {
 	if (existsSync(STORE_FILE)) {
 		try { return JSON.parse(readFileSync(STORE_FILE, 'utf8')); } catch (e) { /* rơi xuống seed */ }
 	}
-	return JSON.parse(readFileSync(join(__dirname, 'data.json'), 'utf8'));
+	return JSON.parse(readFileSync(join(__dirname, 'public', 'data.json'), 'utf8'));
 }
 
 const server = createServer(async function (req, res) {
@@ -92,9 +92,9 @@ const server = createServer(async function (req, res) {
 		}
 	}
 
-	/* ---- data.json (seed) nằm ở root, không phải public/ ---- */
+	/* ---- data.json (seed) nằm trong public/ ---- */
 	if (path === '/data.json' && req.method === 'GET') {
-		const seedPath = join(__dirname, 'data.json');
+		const seedPath = join(__dirname, 'public', 'data.json');
 		if (!existsSync(seedPath)) {
 			res.writeHead(404);
 			return res.end('Not found');

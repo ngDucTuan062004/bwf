@@ -17,7 +17,7 @@ const supabase = createClient(
 
 function loadSeed() {
   try {
-    const raw = readFileSync(join(__dirname, '..', 'data.json'), 'utf8');
+    const raw = readFileSync(join(__dirname, '..', 'public', 'data.json'), 'utf8');
     return JSON.parse(raw);
   } catch {
     return null;

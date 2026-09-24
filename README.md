@@ -21,10 +21,10 @@ Trang web động theo dõi lịch thi đấu, bảng xếp hạng và kết qu�
 │   ├── styles.css        # Toàn bộ CSS
 │   ├── app.js            # Toàn bộ logic frontend
 │   ├── swiss-core.js     # Thuật toán Swiss stage (thuần, không DOM)
-│   └── custom-stage.js   # Sơ đồ cố định 8 đội + 6 đội A/B (thuần, không DOM)
+│   ├── custom-stage.js   # Sơ đồ cố định 8 đội + 6 đội A/B (thuần, không DOM)
+│   └── data.json         # Dữ liệu mặc định (seed khi database chưa có dữ liệu)
 ├── tests/
 │   └── run-all.js    # Toàn bộ test gộp (chạy: npm test)
-├── data.json         # Dữ liệu mặc định (seed khi database chưa có dữ liệu)
 ├── server.js         # Local dev server (Node thuần — chỉ dùng khi chạy local)
 ├── api/
 │   ├── data.js       # GET: đọc dữ liệu · PUT: lưu dữ liệu (cần mật khẩu)
@@ -85,7 +85,7 @@ Muốn thử chỉnh sửa mà không ảnh hưởng dữ liệu thật:
 3. Test thoải mái — mọi thay đổi chỉ nằm trong bảng test.
 4. Test xong → **xoá** env var `SUPABASE_TABLE` → Redeploy → trang về dữ liệu thật.
 
-> Ngoài ra, `data.json` là "nút reset" vĩnh viễn: xoá dòng `id=1` trong bảng đang dùng (Table Editor) → trang tự về dữ liệu seed từ `data.json`.
+> Ngoài ra, `public/data.json` là "nút reset" vĩnh viễn: xoá dòng `id=1` trong bảng đang dùng (Table Editor) → trang tự về dữ liệu seed từ `public/data.json`.
 
 ## Cách sử dụng
 
