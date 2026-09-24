@@ -449,7 +449,7 @@ function generateRoundRobin(content, group) {
 			if (!existing.has(key)) {
 				content.matches.push({
 					stage: stage, p1: players[i], p2: players[j],
-					date: "", time: "", court: "", referee: "", sets: null
+					court: "", referee: "", sets: null
 				});
 				added.push(players[i] + " vs " + players[j]);
 			}
@@ -1487,7 +1487,7 @@ function ensureR1(content) {
 			? [["R1.1", 0, 1], ["R1.2", 2, 3], ["R1.3", 4, 5], ["R1.4", 6, 7]]
 			: [["R1.1", 0, 1], ["R1.2", 2, 3], ["R1.3", 4, 5]];
 		rows.forEach(function (row) {
-			content.matches.push({ stage: "Vòng 1", pos: row[0], p1: participants[row[1]], p2: participants[row[2]], date: "", time: "", court: "", referee: "", sets: null });
+			content.matches.push({ stage: "Vòng 1", pos: row[0], p1: participants[row[1]], p2: participants[row[2]], court: "", referee: "", sets: null });
 		});
 		saveData();
 		renderAll();
@@ -1504,7 +1504,7 @@ function syncFixedBracket(content) {
 	bracket.forEach(function (b) {
 		if (b.round === 1) return; /* R1 do seed tạo */
 		if (!b.match && b.teams[0] && b.teams[1]) {
-			content.matches.push({ stage: "Vòng " + b.round, pos: b.pos, p1: b.teams[0], p2: b.teams[1], date: "", time: "", court: "", referee: "", sets: null });
+			content.matches.push({ stage: "Vòng " + b.round, pos: b.pos, p1: b.teams[0], p2: b.teams[1], court: "", referee: "", sets: null });
 			changed = true;
 		} else if (b.match && b.teams[0] && b.teams[1] && (b.match.p1 !== b.teams[0] || b.match.p2 !== b.teams[1])) {
 			b.match.p1 = b.teams[0]; b.match.p2 = b.teams[1]; changed = true;
@@ -1754,7 +1754,7 @@ function generateNextSwissRound(content) {
 	const res = SwissCore.pairRound(participants, swissMatches, roundNum);
 	if (!res.pairs.length) { alert("Không thể sinh thêm cặp đấu mới."); return; }
 	res.pairs.forEach(function (pair) {
-		content.matches.push({ stage: stage, p1: pair[0], p2: pair[1], date: "", time: "", court: "", referee: "", sets: null });
+		content.matches.push({ stage: stage, p1: pair[0], p2: pair[1], court: "", referee: "", sets: null });
 	});
 	saveData();
 	renderAll();
@@ -1825,7 +1825,6 @@ function renderMatchCard(m, content) {
 			card.appendChild(el("span", { class: "no-score", text: "Chưa có kết quả" }));
 		}
 		const metaParts = [];
-		if (m.date) metaParts.push(el("span", { text: "📅 " + m.date + (m.time ? " · " + m.time : "") }));
 		if (m.court) metaParts.push(el("span", { text: "📍 " + m.court }));
 		if (m.referee) metaParts.push(el("span", { text: "🧑‍⚖️ " + m.referee }));
 		if (metaParts.length) card.appendChild(el("div", { class: "match-meta" }, metaParts));
@@ -1876,20 +1875,16 @@ function renderMatchCard(m, content) {
 		card.appendChild(quickRow);
 	}
 
-	const dateInput = el("input", { type: "text", value: m.date || "", placeholder: "dd/mm/yyyy" });
-	const timeInput = el("input", { type: "text", value: m.time || "", placeholder: "giờ" });
 	const courtInput = el("input", { type: "text", value: m.court || "", placeholder: "sân" });
 	const refInput = el("input", { type: "text", value: m.referee || "", placeholder: "trọng tài" });
 	const metaRow = el("div", { class: "edit-row" }, [
-		el("label", {}, ["Ngày", dateInput]),
-		el("label", {}, ["Giờ", timeInput]),
 		el("label", {}, ["Sân", courtInput]),
 		el("label", {}, ["Trọng tài", refInput]),
 	]);
 	card.appendChild(metaRow);
 
-	function commitMeta() { m.date = dateInput.value; m.time = timeInput.value; m.court = courtInput.value; m.referee = refInput.value; saveData(); }
-	[dateInput, timeInput, courtInput, refInput].forEach(function (inp) { inp.addEventListener("change", commitMeta); });
+	function commitMeta() { m.court = courtInput.value; m.referee = refInput.value; saveData(); }
+	[courtInput, refInput].forEach(function (inp) { inp.addEventListener("change", commitMeta); });
 
 	function commitPlayers() { m.p1 = p1Input.value.trim() || m.p1; m.p2 = p2Input.value.trim() || m.p2; if (m.winner && m.winner !== m.p1 && m.winner !== m.p2) m.winner = null; saveData(); if (isCustomStage(content)) syncFixedBracket(content); renderAll(); }
 	[p1Input, p2Input].forEach(function (inp) { inp.addEventListener("change", commitPlayers); });
@@ -1940,8 +1935,6 @@ function renderAddMatchForm(content, existingStages) {
 
 	const p1Input = el("input", { type: "text", list: "dl-" + content.id, placeholder: "VĐV / cặp 1" });
 	const p2Input = el("input", { type: "text", list: "dl-" + content.id, placeholder: "VĐV / cặp 2" });
-	const dateInput = el("input", { type: "text", placeholder: "vd: 05/10/2026" });
-	const timeInput = el("input", { type: "text", placeholder: "vd: 19:00" });
 	const courtInput = el("input", { type: "text", placeholder: "vd: Sân 1" });
 	const refInput = el("input", { type: "text", placeholder: "(tuỳ chọn)" });
 
@@ -1949,8 +1942,6 @@ function renderAddMatchForm(content, existingStages) {
 		el("label", {}, ["Giai đoạn / Vòng", stageInput]),
 		el("label", {}, ["VĐV / cặp 1", p1Input]),
 		el("label", {}, ["VĐV / cặp 2", p2Input]),
-		el("label", {}, ["Ngày", dateInput]),
-		el("label", {}, ["Giờ", timeInput]),
 		el("label", {}, ["Sân", courtInput]),
 		el("label", {}, ["Trọng tài", refInput]),
 	]);
@@ -1963,7 +1954,6 @@ function renderAddMatchForm(content, existingStages) {
 			if (!stage || !p1 || !p2) { alert("Vui lòng nhập Giai đoạn và tên 2 VĐV/cặp đấu."); return; }
 			content.matches.push({
 				stage: stage, p1: p1, p2: p2,
-				date: dateInput.value.trim(), time: timeInput.value.trim(),
 				court: courtInput.value.trim(), referee: refInput.value.trim(),
 				sets: null,
 			});
