@@ -913,26 +913,28 @@ console.log("✅ isCustomStage: marker / tương thích 8 đội / không custom
 	assert.ok(typeof intervalFn === "function", "startPolling đăng ký callback poll");
 
 	/* guard: vừa tự PUT <1s → poll bỏ qua (không fetch) */
+	lastFetched = { event: {}, contents: [{ id: "x", label: "Cũ", format: "swiss", customStage: true, participants: [], unassignedPairs: [], matches: [] }] };
 	ctx4.lastSaveAt = Date.now();
 	intervalFn();
-	assert.strictEqual(fetchCount, 0, "guard: poll bỏ qua khi chính mình vừa save <1s");
-
-	/* dữ liệu giống → fetch nhưng không render lại (renderAll chỉ khi đổi) */
-	ctx4.lastSaveAt = 0;
-	lastFetched = { event: {}, contents: [{ id: "x", label: "Cũ", format: "swiss", customStage: true, participants: [], unassignedPairs: [], matches: [] }] };
-	intervalFn();
 	setTimeout(function () {
-		assert.ok(fetchCount > 0, "poll fetch /api/data");
-		assert.ok(allText(mainEl4).indexOf("Danh sách cặp đấu tham gia") === -1, "dữ liệu giống → KHÔNG render lại (mainEl trống)");
+		assert.strictEqual(fetchCount, 0, "guard: poll bỏ qua khi chính mình vừa save <1s");
 
-		/* dữ liệu đổi → fetch + renderAll */
-		lastFetched = { event: {}, contents: [{ id: "x", label: "Mới", format: "swiss", customStage: true, participants: [], unassignedPairs: [], matches: [] }] };
+		/* dữ liệu giống → fetch nhưng không render lại (renderAll chỉ khi đổi) */
+		ctx4.lastSaveAt = 0;
 		intervalFn();
 		setTimeout(function () {
-			assert.ok(allText(mainEl4).indexOf("Danh sách cặp đấu tham gia") !== -1, "dữ liệu đổi → renderAll (section 1 hiện)");
-			console.log("✅ Polling client: startPolling setInterval 5s + guard + render khi đổi — PASS");
+			assert.ok(fetchCount > 0, "poll fetch /api/data");
+			assert.ok(allText(mainEl4).indexOf("Danh sách cặp đấu tham gia") === -1, "dữ liệu giống → KHÔNG render lại (mainEl trống)");
+
+			/* dữ liệu đổi → fetch + renderAll */
+			lastFetched = { event: {}, contents: [{ id: "x", label: "Mới", format: "swiss", customStage: true, participants: [], unassignedPairs: [], matches: [] }] };
+			intervalFn();
+			setTimeout(function () {
+				assert.ok(allText(mainEl4).indexOf("Danh sách cặp đấu tham gia") !== -1, "dữ liệu đổi → renderAll (section 1 hiện)");
+				console.log("✅ Polling client: startPolling setInterval 5s + guard + render khi đổi — PASS");
+			}, 50);
 		}, 50);
-	}, 50);
+	}, 0);
 }
 
 console.log("✅ Tất cả test reset + smoke bracket đều PASS");
