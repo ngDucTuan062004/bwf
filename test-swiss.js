@@ -102,4 +102,32 @@ const m6 = fullRun(6, 5);
 assert.ok(m6.length >= 13, "6 đội × 5 vòng nên có ≥13 trận, thực tế " + m6.length);
 assertNoRematch(m6, "6 đội");
 
-console.log("✅ Tất cả 12 nhóm test Swiss đều PASS");
+/* 13. useHeadToHead: A và C cùng 2-1, cùng hiệu số séc +2, A thắng đối đầu C.
+   Default (điểm) → C trên (điểm cao hơn). H2H → A trên (thắng đối đầu). */
+const h2hMatches = [
+	mk("A", "C", [[21, 18], [17, 21], [15, 14]]), /* A thắng đối đầu C 2-1 (A +1 séc) */
+	mk("A", "B", [[21, 15], [21, 18]]),            /* A 2-0 (+2 séc) */
+	mk("A", "D", [[18, 21], [21, 19], [13, 15]]),  /* D thắng 2-1 (A -1 séc) */
+	mk("C", "B", [[21, 15], [21, 18]]),            /* C 2-0 (+2 séc) */
+	mk("C", "D", [[21, 19], [19, 21], [15, 10]]),  /* C thắng 2-1 (+1 séc) */
+	mk("B", "D", [[21, 15], [18, 21], [15, 11]]),  /* D thắng 2-1 (+1 séc) */
+];
+/* A: 2-1, sets 5-3 (+2), điểm +6 · C: 2-1, sets 5-3 (+2), điểm +14 · D: 2-1 (+1 séc) */
+const defaultRows = S.computeStandings(["A", "B", "C", "D"], h2hMatches);
+assert.strictEqual(defaultRows[0].name, "C", "mặc định: C điểm cao hơn → C trên (điểm vẫn dùng)");
+const h2hRows = S.computeStandings(["A", "B", "C", "D"], h2hMatches, { useHeadToHead: true });
+assert.strictEqual(h2hRows[0].name, "A", "H2H: A thắng đối đầu C → A xếp trên dù điểm thấp");
+assert.strictEqual(h2hRows[1].name, "C");
+
+/* 14. useHeadToHead: không có trận đối đầu giữa các đội hòa → giữ nguyên thứ tự (không crash) */
+const noH2h = S.computeStandings(["A", "B", "C", "D"], [
+	mk("A", "B", [[21, 15], [18, 21], [15, 10]]),
+	mk("C", "D", [[21, 10], [21, 12]]),
+], { useHeadToHead: true });
+assert.strictEqual(noH2h.length, 4, "không có đối đầu → vẫn đủ 4 đội, không crash");
+
+/* 15. Mặc định (không opts) → vẫn dùng hiệu số điểm (hành vi cũ, đôi không đổi).
+   Dùng lại h2hMatches: A và C hòa wins + séc nhưng C điểm cao hơn → C trên. */
+assert.strictEqual(defaultRows[0].name, "C", "mặc định vẫn xếp theo hiệu số điểm → C trên A");
+
+console.log("✅ Tất cả 15 nhóm test Swiss đều PASS");
