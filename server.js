@@ -92,6 +92,17 @@ const server = createServer(async function (req, res) {
 		}
 	}
 
+	/* ---- data.json (seed) nằm ở root, không phải public/ ---- */
+	if (path === '/data.json' && req.method === 'GET') {
+		const seedPath = join(__dirname, 'data.json');
+		if (!existsSync(seedPath)) {
+			res.writeHead(404);
+			return res.end('Not found');
+		}
+		res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+		return res.end(readFileSync(seedPath));
+	}
+
 	/* ---- Serve tĩnh (frontend nằm trong public/) ---- */
 	let filePath = path === '/' ? '/index.html' : path;
 	filePath = join(__dirname, 'public', filePath);
