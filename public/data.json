@@ -1,135 +1,503 @@
 {
 	"event": {
-		"dateRange": "30/9 – 04/10/2026",
-		"location": "Sân cầu lông Đồng Đội"
+		"location": "Sân cầu lông Đồng Đội",
+		"dateRange": "30/9 – 04/10/2026"
 	},
 	"contents": [
 		{
 			"id": "don-nam",
 			"label": "Đơn nam",
 			"format": "group",
-			"scoringNote": "Thắng 2/3 séc — séc 1 & 2 đến 21 điểm, séc 3 (nếu có) đến 15 điểm. Chia 2 bảng vòng tròn, Nhất/Nhì mỗi bảng vào bán kết.",
-			"unassignedPlayers": [
-				"Phan Văn Thịnh",
-				"Lâm Vĩ Phát",
-				"Trịnh Hoàng Trí",
-				"Nguyễn Hoàng Hải Đăng",
-				"Nguyễn Văn Phong",
-				"Nguyễn Cao Kế",
-				"Nguyễn Minh Trường",
-				"Đỗ Thành Chung"
-			],
 			"groups": [
 				{
 					"name": "Bảng A",
-					"players": []
+					"players": [
+						"Trịnh Hoàng Trí",
+						"Phan Văn Thịnh",
+						"Nguyễn Minh Trường",
+						"Đỗ Thành Chung"
+					]
 				},
 				{
 					"name": "Bảng B",
-					"players": []
+					"players": [
+						"Nguyễn Hoàng Hải Đăng",
+						"Nguyễn Cao Kế",
+						"Trần Thái An",
+						"Nguyễn Văn Phong"
+					]
 				}
 			],
-			"matches": []
+			"matches": [
+				{
+					"p1": "Trịnh Hoàng Trí",
+					"p2": "Phan Văn Thịnh",
+					"sets": [
+						[10, 21],
+						[7, 21]
+					],
+					"court": "1",
+					"stage": "Vòng bảng — Bảng A",
+					"winner": null,
+					"referee": "Trường"
+				},
+				{
+					"p1": "Trịnh Hoàng Trí",
+					"p2": "Nguyễn Minh Trường",
+					"sets": [
+						[19, 21],
+						[19, 21]
+					],
+					"court": "",
+					"stage": "Vòng bảng — Bảng A",
+					"winner": null,
+					"referee": ""
+				},
+				{
+					"p1": "Trịnh Hoàng Trí",
+					"p2": "Đỗ Thành Chung",
+					"sets": [
+						[13, 21],
+						[5, 21]
+					],
+					"court": "",
+					"stage": "Vòng bảng — Bảng A",
+					"winner": null,
+					"referee": ""
+				},
+				{
+					"p1": "Phan Văn Thịnh",
+					"p2": "Nguyễn Minh Trường",
+					"sets": [
+						[21, 6],
+						[21, 7]
+					],
+					"court": "",
+					"stage": "Vòng bảng — Bảng A",
+					"winner": null,
+					"referee": ""
+				},
+				{
+					"p1": "Phan Văn Thịnh",
+					"p2": "Đỗ Thành Chung",
+					"sets": null,
+					"court": "",
+					"stage": "Vòng bảng — Bảng A",
+					"referee": ""
+				},
+				{
+					"p1": "Nguyễn Minh Trường",
+					"p2": "Đỗ Thành Chung",
+					"sets": [
+						[25, 27],
+						[21, 13],
+						[8, 15]
+					],
+					"court": "",
+					"stage": "Vòng bảng — Bảng A",
+					"winner": null,
+					"referee": ""
+				},
+				{
+					"p1": "Nguyễn Hoàng Hải Đăng",
+					"p2": "Nguyễn Cao Kế",
+					"sets": [
+						[21, 12],
+						[21, 18]
+					],
+					"court": "2",
+					"stage": "Vòng bảng — Bảng B",
+					"winner": null,
+					"referee": "An"
+				},
+				{
+					"p1": "Nguyễn Hoàng Hải Đăng",
+					"p2": "Trần Thái An",
+					"sets": [
+						[21, 14],
+						[21, 18]
+					],
+					"court": "",
+					"stage": "Vòng bảng — Bảng B",
+					"winner": null,
+					"referee": ""
+				},
+				{
+					"p1": "Nguyễn Hoàng Hải Đăng",
+					"p2": "Nguyễn Văn Phong",
+					"sets": [
+						[13, 21],
+						[21, 13],
+						[7, 15]
+					],
+					"court": "",
+					"stage": "Vòng bảng — Bảng B",
+					"winner": null,
+					"referee": ""
+				},
+				{
+					"p1": "Nguyễn Cao Kế",
+					"p2": "Trần Thái An",
+					"sets": [
+						[9, 21]
+					],
+					"court": "",
+					"stage": "Vòng bảng — Bảng B",
+					"referee": ""
+				},
+				{
+					"p1": "Nguyễn Cao Kế",
+					"p2": "Nguyễn Văn Phong",
+					"sets": [
+						[14, 21],
+						[15, 21]
+					],
+					"court": "",
+					"stage": "Vòng bảng — Bảng B",
+					"winner": null,
+					"referee": ""
+				},
+				{
+					"p1": "Trần Thái An",
+					"p2": "Nguyễn Văn Phong",
+					"sets": [
+						[14, 21],
+						[16, 21]
+					],
+					"court": "",
+					"stage": "Vòng bảng — Bảng B",
+					"winner": null,
+					"referee": ""
+				}
+			],
+			"seedFilled": [],
+			"customStage": false,
+			"scoringNote": "Thắng 2/3 séc — séc 1 & 2 đến 21 điểm, séc 3 (nếu có) đến 15 điểm. Chia 2 bảng vòng tròn, Nhất/Nhì mỗi bảng vào bán kết.",
+			"participants": [],
+			"unassignedPairs": [],
+			"unassignedPlayers": []
 		},
 		{
 			"id": "don-nu-1",
 			"label": "Đơn nữ · Nhóm 1",
 			"format": "group",
-			"scoringNote": "Thắng 2/3 séc — mỗi séc đến 15 điểm. Chia 2 bảng vòng tròn, Nhất/Nhì mỗi bảng vào bán kết.",
-			"unassignedPlayers": [
-				"Bùi Tuệ San",
-				"Huỳnh Thị Thoại My",
-				"Trần Minh Thư",
-				"Lý Thanh Trúc",
-				"Nguyễn Thụy Thảo Vy",
-				"Trần Thu Trang"
-			],
 			"groups": [
 				{
 					"name": "Bảng A",
-					"players": []
+					"players": [
+						"Bùi Tuệ San",
+						"Nguyễn Thụy Thảo Vy",
+						"Huỳnh Thị Thoại My"
+					]
 				},
 				{
 					"name": "Bảng B",
-					"players": []
+					"players": [
+						"Trần Minh Thư",
+						"Trần Thu Trang",
+						"Lý Thanh Trúc"
+					]
 				}
 			],
-			"matches": []
+			"matches": [
+				{
+					"p1": "Bùi Tuệ San",
+					"p2": "Nguyễn Thụy Thảo Vy",
+					"sets": [
+						[15, 5],
+						[15, 5]
+					],
+					"court": "2",
+					"stage": "Vòng bảng — Bảng A",
+					"winner": null,
+					"referee": "Lâm"
+				},
+				{
+					"p1": "Bùi Tuệ San",
+					"p2": "Huỳnh Thị Thoại My",
+					"sets": [
+						[15, 12],
+						[15, 11]
+					],
+					"court": "2",
+					"stage": "Vòng bảng — Bảng A",
+					"winner": null,
+					"referee": "Lân"
+				},
+				{
+					"p1": "Nguyễn Thụy Thảo Vy",
+					"p2": "Huỳnh Thị Thoại My",
+					"sets": [
+						[5, 15],
+						[7, 15]
+					],
+					"court": "2",
+					"stage": "Vòng bảng — Bảng A",
+					"winner": null,
+					"referee": "Lâm"
+				},
+				{
+					"p1": "Trần Minh Thư",
+					"p2": "Trần Thu Trang",
+					"sets": [
+						[15, 11],
+						[15, 3]
+					],
+					"court": "2",
+					"stage": "Vòng bảng — Bảng B",
+					"winner": null,
+					"referee": "Lâm"
+				},
+				{
+					"p1": "Trần Minh Thư",
+					"p2": "Lý Thanh Trúc",
+					"sets": [
+						[15, 12],
+						[15, 10]
+					],
+					"court": "3",
+					"stage": "Vòng bảng — Bảng B",
+					"winner": null,
+					"referee": "Việt"
+				},
+				{
+					"p1": "Trần Thu Trang",
+					"p2": "Lý Thanh Trúc",
+					"sets": [
+						[10, 15],
+						[13, 15]
+					],
+					"court": "1",
+					"stage": "Vòng bảng — Bảng B",
+					"winner": null,
+					"referee": "Phát"
+				},
+				{
+					"p1": "Tuệ San",
+					"p2": "Thanh Trúc",
+					"sets": null,
+					"court": "",
+					"stage": "Bán kết",
+					"referee": ""
+				},
+				{
+					"p1": "Thoại My",
+					"p2": "Minh Thư",
+					"sets": null,
+					"court": "",
+					"stage": "Bán kết",
+					"referee": ""
+				}
+			],
+			"scoringNote": "Thắng 2/3 séc — mỗi séc đến 15 điểm. Chia 2 bảng vòng tròn, Nhất/Nhì mỗi bảng vào bán kết.",
+			"unassignedPlayers": []
 		},
 		{
 			"id": "don-nu-2",
 			"label": "Đơn nữ · Nhóm 2",
 			"format": "group",
-			"scoringNote": "Thắng 2/3 séc — mỗi séc đến 15 điểm. Chia 2 bảng vòng tròn, Nhất/Nhì mỗi bảng vào bán kết.",
-			"unassignedPlayers": [
-				"Nguyễn Ngọc Hạnh",
-				"Phan Huỳnh Thanh Ngọc",
-				"Nguyễn Ngọc Yến Nhi",
-				"Mai Nguyễn Gia Nhi",
-				"Huỳnh Trần Khánh Băng",
-				"Lê Thị Hồng Phượng"
-			],
 			"groups": [
 				{
 					"name": "Bảng A",
-					"players": []
+					"players": [
+						"Phạm Đoàn Gia Hân",
+						"Nguyễn Ngọc Hạnh",
+						"Mai Nguyễn Gia Nhi"
+					]
 				},
 				{
 					"name": "Bảng B",
-					"players": []
+					"players": [
+						"Nguyễn Ngọc Yến Nhi",
+						"Phan Huỳnh Thanh Ngọc",
+						"Lê Thị Hồng Phượng"
+					]
 				}
 			],
-			"matches": []
+			"matches": [
+				{
+					"p1": "Phạm Đoàn Gia Hân",
+					"p2": "Nguyễn Ngọc Hạnh",
+					"sets": [
+						[15, 6],
+						[16, 14]
+					],
+					"court": "3",
+					"stage": "Vòng bảng — Bảng A",
+					"winner": null,
+					"referee": "Việt"
+				},
+				{
+					"p1": "Phạm Đoàn Gia Hân",
+					"p2": "Mai Nguyễn Gia Nhi",
+					"sets": [
+						[11, 15],
+						[15, 10],
+						[15, 10]
+					],
+					"court": "3",
+					"stage": "Vòng bảng — Bảng A",
+					"winner": null,
+					"referee": "Việt"
+				},
+				{
+					"p1": "Nguyễn Ngọc Hạnh",
+					"p2": "Mai Nguyễn Gia Nhi",
+					"sets": [
+						[12, 15],
+						[8, 15]
+					],
+					"court": "3",
+					"stage": "Vòng bảng — Bảng A",
+					"winner": null,
+					"referee": "Việt"
+				},
+				{
+					"p1": "Nguyễn Ngọc Yến Nhi",
+					"p2": "Phan Huỳnh Thanh Ngọc",
+					"sets": [
+						[13, 15],
+						[13, 15]
+					],
+					"court": "1",
+					"stage": "Vòng bảng — Bảng B",
+					"winner": null,
+					"referee": "Phát"
+				},
+				{
+					"p1": "Nguyễn Ngọc Yến Nhi",
+					"p2": "Lê Thị Hồng Phượng",
+					"sets": [
+						[15, 10],
+						[15, 13]
+					],
+					"court": "1",
+					"stage": "Vòng bảng — Bảng B",
+					"winner": null,
+					"referee": "Phát"
+				},
+				{
+					"p1": "Phan Huỳnh Thanh Ngọc",
+					"p2": "Lê Thị Hồng Phượng",
+					"sets": [
+						[15, 9],
+						[15, 4]
+					],
+					"court": "1",
+					"stage": "Vòng bảng — Bảng B",
+					"winner": null,
+					"referee": "Phát"
+				},
+				{
+					"p1": "Thanh Ngọc",
+					"p2": "Gia Nhi",
+					"sets": [
+						[15, 10],
+						[15, 11]
+					],
+					"court": "3",
+					"stage": "Bán kết",
+					"winner": null,
+					"referee": "Việt"
+				},
+				{
+					"p1": "Yến Nhi",
+					"p2": "Gia Hân",
+					"sets": [
+						[13, 15],
+						[7, 15]
+					],
+					"court": "1",
+					"stage": "Bán kết",
+					"winner": null,
+					"referee": "Phát"
+				},
+				{
+					"p1": "Gia Nhi",
+					"p2": "Yến Nhi",
+					"sets": [
+						[15, 17],
+						[13, 15]
+					],
+					"court": "1",
+					"stage": "Tranh hạng 3",
+					"winner": null,
+					"referee": "Phát"
+				},
+				{
+					"p1": "Thanh Ngọc",
+					"p2": "Gia Hân",
+					"sets": null,
+					"court": "",
+					"stage": "Chung kết",
+					"referee": ""
+				}
+			],
+			"scoringNote": "Thắng 2/3 séc — mỗi séc đến 15 điểm. Chia 2 bảng vòng tròn, Nhất/Nhì mỗi bảng vào bán kết.",
+			"unassignedPlayers": []
 		},
 		{
 			"id": "doi-nam",
 			"label": "Đôi nam",
 			"format": "swiss",
+			"matches": [],
+			"seedFilled": [
+				true,
+				true,
+				true,
+				true,
+				true,
+				true
+			],
 			"customStage": true,
 			"scoringNote": "Thắng 2/3 séc — séc 1 & 2 đến 21 điểm, séc 3 (nếu có) đến 15 điểm. Thể thức Swiss, sau đó chia nhánh Thắng/Thua.",
 			"participants": [
-				"Trần Thái An - Nguyễn Cao Kế",
+				"Nguyễn Trí Việt - Triệu Văn Quý",
 				"Nguyễn Minh Trường - Nguyễn Đức Tuấn",
-				"Đỗ Thành Chung - Nguyễn Đình Triết",
-				"Nguyễn Trí Việt - Nguyễn Xuân Hoàng Khôi",
-				"Đỗ Anh Quân - Phan Văn Thịnh",
-				"Trịnh Hoàng Trí - Nguyễn Hoàng Hải Đăng"
+				"Lâm Vĩ Phát - Phan Văn Thịnh",
+				"Trịnh Hoàng Trí - Nguyễn Hoàng Hải Đăng",
+				"Trần Thái An - Nguyễn Cao Kế",
+				"Đỗ Thành Chung - Nguyễn Đình Triết"
 			],
-			"matches": []
+			"unassignedPairs": []
 		},
 		{
 			"id": "doi-nam-nu-1",
 			"label": "Đôi nam nữ · Nhóm 1",
 			"format": "swiss",
+			"matches": [],
+			"seedFilled": [],
 			"customStage": true,
 			"scoringNote": "Thắng 2/3 séc — séc 1 & 2 đến 21 điểm, séc 3 (nếu có) đến 15 điểm. Thể thức Swiss, sau đó chia nhánh Thắng/Thua.",
-			"participants": [
+			"participants": [],
+			"unassignedPairs": [
 				"Nguyễn Đình Triết - Nguyễn Thụy Thảo Vy",
 				"Trần Văn Cường - Huỳnh Thị Thoại My",
 				"Nguyễn Văn Phong - Nguyễn Thị Như Quỳnh",
 				"Phan Văn Thịnh - Lý Thanh Trúc",
-				"Sau Thành Thái - Trần Thu Trang",
+				"Thành Tô - Trần Thu Trang",
 				"Lương Công Triều - Trần Minh Thư",
-				"Võ Minh Tuấn - Bùi Tuệ San",
+				"Sau Thành Lợi - Bùi Tuệ San",
 				"Tuyên Bon - Huỳnh Trần Khánh Băng"
-			],
-			"matches": []
+			]
 		},
 		{
 			"id": "doi-nam-nu-2",
 			"label": "Đôi nam nữ · Nhóm 2",
 			"format": "swiss",
+			"matches": [],
+			"seedFilled": [],
 			"customStage": true,
 			"scoringNote": "Thắng 2/3 séc — séc 1 & 2 đến 21 điểm, séc 3 (nếu có) đến 15 điểm. Thể thức Swiss, sau đó chia nhánh Thắng/Thua.",
-			"participants": [
+			"participants": [],
+			"unassignedPairs": [
 				"Nguyễn Đức Tuấn - Mai Nguyễn Gia Nhi",
 				"Nguyễn Trí Việt - Lê Thị Hồng Phượng",
 				"Trần Thái An - Nguyễn Ngọc Yến Nhi",
 				"Trịnh Hoàng Trí - Tô Ngọc Khánh An",
 				"Đỗ Anh Quân - Nguyễn Ngọc Hạnh",
 				"Lâm Vĩ Phát - Phan Huỳnh Thanh Ngọc"
-			],
-			"matches": []
+			]
 		}
 	]
 }
