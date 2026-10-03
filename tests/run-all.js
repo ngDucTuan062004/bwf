@@ -1344,3 +1344,32 @@ assert.strictEqual(typeof S.computeStandings, "function");
 
 console.log("✅ Tất cả test bracket đều PASS");
 }
+
+/* ============================================================
+   5/5 — data.json seed phải ở trạng thái DÙNG ĐƯỢC (renderSeedPool đọc unassignedPairs)
+   Ngõ cụt: pool rỗng + seedFilled[true] + chưa có R1 → "Đã xếp đủ N cặp",
+   không kéo được gì, ensureR1 không chạy → không thêm được VĐV vào bảng đấu.
+   ============================================================ */
+{
+	const seedData = JSON.parse(readFileSync(new URL("../public/data.json", import.meta.url), "utf8"));
+	const custom = seedData.contents.filter(function (c) { return c.format === "swiss" && c.customStage === true; });
+	assert.ok(custom.length >= 3, "data.json phải có ít nhất 3 nội dung custom stage");
+
+	custom.forEach(function (c) {
+		const label = c.label + " (" + c.id + ")";
+		const pool = c.unassignedPairs || [];
+		const hasR1 = (c.matches || []).some(function (m) { return m.pos && m.pos.indexOf("R1.") === 0; });
+		/* 1. Phải có cặp trong danh sách chờ (pool) — nếu rỗng thì kéo vào seed không được */
+		assert.ok(pool.length > 0, label + ": danh sách chờ (unassignedPairs) phải có cặp để kéo vào hạt giống");
+		/* 2. Pool phải đủ 6 hoặc 8 cặp (kích thước nhóm hợp lệ) */
+		assert.ok(pool.length === 6 || pool.length === 8, label + ": số cặp chờ phải là 6 hoặc 8 (đang " + pool.length + ")");
+		/* 3. Chưa có R1 thì seedFilled phải rỗng — tránh ensureR1 tưởng đã đủ seed */
+		if (!hasR1) {
+			assert.strictEqual((c.seedFilled || []).length, 0, label + ": chưa có R1 thì seedFilled phải rỗng (tránh kẹt ô seed)");
+			assert.strictEqual((c.participants || []).length, 0, label + ": chưa có R1 thì participants phải rỗng để kéo dần từ pool");
+		}
+		/* 4. Không ô seed nào rỗng ("") bị tính là đã xếp */
+		assert.ok(!(c.participants || []).some(function (t) { return t === ""; }), label + ": participants không được chứa ô rỗng");
+	});
+	console.log("✅ data.json seed: " + custom.length + " nội dung custom stage đều có pool kéo được + không kẹt ô seed — PASS");
+}

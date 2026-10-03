@@ -612,25 +612,18 @@ values (1, $$
 			"label": "Đôi nam",
 			"format": "swiss",
 			"matches": [],
-			"seedFilled": [
-				true,
-				true,
-				true,
-				true,
-				true,
-				true
-			],
+			"seedFilled": [],
 			"customStage": true,
 			"scoringNote": "Thắng 2/3 séc — séc 1 & 2 đến 21 điểm, séc 3 (nếu có) đến 15 điểm. Thể thức Swiss, sau đó chia nhánh Thắng/Thua.",
-			"participants": [
+			"participants": [],
+			"unassignedPairs": [
 				"Nguyễn Trí Việt - Triệu Văn Quý",
 				"Nguyễn Minh Trường - Nguyễn Đức Tuấn",
 				"Lâm Vĩ Phát - Phan Văn Thịnh",
 				"Trịnh Hoàng Trí - Nguyễn Hoàng Hải Đăng",
 				"Trần Thái An - Nguyễn Cao Kế",
 				"Đỗ Thành Chung - Nguyễn Đình Triết"
-			],
-			"unassignedPairs": []
+			]
 		},
 		{
 			"id": "doi-nam-nu-1",
