@@ -340,7 +340,14 @@ function applySeedToContent(content, seedContent) {
 		if (seedIsCustom) {
 			content.customStage = true;
 			content.participants = [];
-			content.unassignedPairs = (seedContent.participants || []).slice();
+			/* Seed có thể lưu cặp ở participants (đôi nam) HOẶC unassignedPairs (đôi nam nữ).
+			   Gộp cả hai nguồn + dedupe để Reset không bao giờ xoá mất VĐV. */
+			content.unassignedPairs = (seedContent.participants || [])
+				.concat(seedContent.unassignedPairs || [])
+				.filter(function (p, idx, arr) { return p && arr.indexOf(p) === idx; });
+			/* participants đã xoá → seedFilled phải rỗng theo. Nếu giữ seedFilled[true]
+			   cũ, ensureR1 sẽ sinh R1 ngay khi kéo cặp đầu tiên với p2 undefined. */
+			content.seedFilled = [];
 		} else {
 			content.participants = (seedContent.participants || []).slice();
 			content.unassignedPairs = (seedContent.unassignedPairs || []).slice(); // seed thiếu field → []
@@ -1481,7 +1488,12 @@ function ensureR1(content) {
 	const size = (total === 8 || total === 6) ? total : 0;
 	if (size === 0) return;
 	/* every(Boolean) bỏ qua hole trong mảng thưa (seedFilled sau reset) → phải check tường minh các ô */
-	const allSeedsFilled = seedFilled.length === size && [0, 1, 2, 3, 4, 5, 6, 7].slice(0, size).every(function (i) { return seedFilled[i] === true; });
+	const allSeedsFilled = seedFilled.length === size && [0, 1, 2, 3, 4, 5, 6, 7].slice(0, size).every(function (i) {
+		/* Ô seed phải THẬT SỰ chứa cặp — không được tin seedFilled một mình.
+		   State cũ / sau reset có thể còn seedFilled[true] trong khi participants còn hole,
+		   sinh R1 với p1/p2 = undefined. */
+		return seedFilled[i] === true && typeof participants[i] === "string" && participants[i] !== "";
+	});
 	if (allSeedsFilled && !hasR1) {
 		const rows = size === 8
 			? [["R1.1", 0, 1], ["R1.2", 2, 3], ["R1.3", 4, 5], ["R1.4", 6, 7]]

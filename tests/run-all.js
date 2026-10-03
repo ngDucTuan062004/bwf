@@ -208,7 +208,40 @@ assert.deepStrictEqual(hostClone(contentG2.unassignedPairs), pairs8, "swiss 8 đ
 assert.deepStrictEqual(hostClone(contentG2.participants), [], "swiss 8 đội không marker → participants = []");
 assert.strictEqual(contentG2.customStage, true, "seed 8 đội không marker → content vẫn được gắn marker customStage");
 
-console.log("✅ applySeedToContent: (a) seed đầy đủ, (b) seed thiếu unassignedPairs, (c) không seed, (d) copy mảng, (e) reset seedFilled, (f) khôi phục seedFilled, (g) reset custom-stage → danh sách chờ, (g2) swiss 8 không marker — PASS");
+/* (h) BUG-1: seed custom stage lưu cặp ở unassignedPairs (KHÔNG phải participants).
+   Đây đúng là shape thật của doi-nam-nu-1 / doi-nam-nu-2 trong public/data.json.
+   Reset chỉ đọc seed.participants nên xoá sạch toàn bộ VĐV → mất danh sách để thêm tiếp. */
+const nuPairs = ["N1-A", "N2-B", "N3-C", "N4-D", "N5-E", "N6-F", "N7-G", "N8-H"];
+const contentH = {
+	label: "cũ", format: "swiss", customStage: true,
+	participants: ["X-Y"], matches: [{ stage: "Vòng 1", pos: "R1.1" }],
+	unassignedPairs: [], seedFilled: [true, true, true, true, true, true, true, true]
+};
+const seedH = {
+	label: "Đôi nam nữ · Nhóm 1", format: "swiss", customStage: true,
+	participants: [], matches: [], unassignedPairs: nuPairs.slice()
+};
+applySeedToContent(contentH, seedH);
+assert.deepStrictEqual(hostClone(contentH.unassignedPairs), nuPairs, "BUG-1: reset KHÔNG được xoá cặp lưu ở seed.unassignedPairs");
+assert.deepStrictEqual(hostClone(contentH.participants), [], "BUG-1: reset custom → participants = [] (bracket trống)");
+assert.strictEqual(contentH.customStage, true, "BUG-1: reset giữ marker customStage");
+
+/* (i) BUG-1: seed có cặp ở CẢ participants lẫn unassignedPairs (trùng nhau) → reset gộp hết, dedupe */
+const contentI = { format: "swiss", customStage: true, participants: [], matches: [], unassignedPairs: [], seedFilled: [] };
+const seedI = { format: "swiss", customStage: true, participants: ["P1", "P2"], matches: [], unassignedPairs: ["P2", "P3"] };
+applySeedToContent(contentI, seedI);
+assert.deepStrictEqual(hostClone(contentI.unassignedPairs), ["P1", "P2", "P3"], "BUG-1: gộp cả 2 nguồn + dedupe");
+
+/* (j) BUG-2: seed custom stage có seedFilled=[true×6] (đúng shape doi-nam trong data.json) nhưng
+   reset xoá participants → giữ lại seedFilled sẽ khiến ensureR1 sinh R1 sớm với p2 undefined. */
+const pairs6d = ["Q1-Q2", "Q3-Q4", "Q5-Q6", "Q7-Q8", "Q9-Q10", "Q11-Q12"];
+const contentJ = { format: "swiss", customStage: true, participants: [], matches: [], unassignedPairs: [], seedFilled: [false] };
+const seedJ = { format: "swiss", customStage: true, participants: pairs6d.slice(), matches: [], unassignedPairs: [], seedFilled: [true, true, true, true, true, true] };
+applySeedToContent(contentJ, seedJ);
+assert.deepStrictEqual(hostClone(contentJ.unassignedPairs), pairs6d, "BUG-2: 6 cặp về danh sách chờ");
+assert.deepStrictEqual(hostClone(contentJ.seedFilled), [], "BUG-2: reset custom → seedFilled phải rỗng vì participants đã bị xoá");
+
+console.log("✅ applySeedToContent: (a) seed đầy đủ, (b) seed thiếu unassignedPairs, (c) không seed, (d) copy mảng, (e) reset seedFilled, (f) khôi phục seedFilled, (g) reset custom-stage → danh sách chờ, (g2) swiss 8 không marker, (h) BUG-1 cặp ở unassignedPairs, (i) BUG-1 gộp+dedupe, (j) BUG-2 seedFilled rỗng — PASS");
 
 /* ============================================================
    2. Fixed bracket smoke — kết hợp renderCustomBracket (DOM stub)
@@ -505,6 +538,15 @@ assert.strictEqual(c9.participants[2], "T8", "state cũ: T8 về seed 3");
 assert.strictEqual(c9.participants.filter(function (t) { return t === "T8"; }).length, 1, "không nhân bản đội khi đổi seed");
 assert.strictEqual(c9.participants.length, 8, "state cũ: giữ đủ 8 đội");
 assert.strictEqual(c9.matches.length, 0, "state cũ: seedFilled chưa đủ 8 → chưa tạo R1");
+
+/* 3g3. BUG-3: seedFilled đủ true nhưng participants còn hole (do reset copy seedFilled cũ từ seed)
+   → ensureR1 KHÔNG được sinh R1, tuyệt đối không tạo trận có p2 undefined. */
+const c6b = { format: "swiss", customStage: true, participants: [], unassignedPairs: teams6.slice(), seedFilled: [true, true, true, true, true, true], matches: [] };
+ctx.assignSeed(c6b, 1, teams6[0]);
+assert.strictEqual(c6b.matches.length, 0, "BUG-3: seedFilled đủ 6 nhưng participants còn rỗng → CHƯA tạo R1");
+teams6.forEach(function (t, i) { ctx.assignSeed(c6b, i + 1, t); });
+assert.strictEqual(c6b.matches.length, 3, "BUG-3: gán đủ 6 cặp thật → tạo đúng 3 trận R1");
+assert.ok(c6b.matches.every(function (m) { return m.p1 && m.p2; }), "BUG-3: mọi trận R1 đều có p1 và p2 thật");
 
 /* 3j. unassignSeed: gỡ cặp khỏi seed → về danh sách chờ + xoá R1 (chưa ghi kết quả); gán lại → R1 sinh lại */
 assert.ok(ctx.unassignSeed, "unassignSeed phải tồn tại sau khi load app.js");
