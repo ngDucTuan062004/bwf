@@ -33,8 +33,14 @@
 					"p1": "Trịnh Hoàng Trí",
 					"p2": "Phan Văn Thịnh",
 					"sets": [
-						[10, 21],
-						[7, 21]
+						[
+							10,
+							21
+						],
+						[
+							7,
+							21
+						]
 					],
 					"court": "1",
 					"stage": "Vòng bảng — Bảng A",
@@ -45,8 +51,14 @@
 					"p1": "Trịnh Hoàng Trí",
 					"p2": "Nguyễn Minh Trường",
 					"sets": [
-						[19, 21],
-						[19, 21]
+						[
+							19,
+							21
+						],
+						[
+							19,
+							21
+						]
 					],
 					"court": "",
 					"stage": "Vòng bảng — Bảng A",
@@ -57,8 +69,14 @@
 					"p1": "Trịnh Hoàng Trí",
 					"p2": "Đỗ Thành Chung",
 					"sets": [
-						[13, 21],
-						[5, 21]
+						[
+							13,
+							21
+						],
+						[
+							5,
+							21
+						]
 					],
 					"court": "",
 					"stage": "Vòng bảng — Bảng A",
@@ -69,8 +87,14 @@
 					"p1": "Phan Văn Thịnh",
 					"p2": "Nguyễn Minh Trường",
 					"sets": [
-						[21, 6],
-						[21, 7]
+						[
+							21,
+							6
+						],
+						[
+							21,
+							7
+						]
 					],
 					"court": "",
 					"stage": "Vòng bảng — Bảng A",
@@ -89,9 +113,18 @@
 					"p1": "Nguyễn Minh Trường",
 					"p2": "Đỗ Thành Chung",
 					"sets": [
-						[25, 27],
-						[21, 13],
-						[8, 15]
+						[
+							25,
+							27
+						],
+						[
+							21,
+							13
+						],
+						[
+							8,
+							15
+						]
 					],
 					"court": "",
 					"stage": "Vòng bảng — Bảng A",
@@ -102,8 +135,14 @@
 					"p1": "Nguyễn Hoàng Hải Đăng",
 					"p2": "Nguyễn Cao Kế",
 					"sets": [
-						[21, 12],
-						[21, 18]
+						[
+							21,
+							12
+						],
+						[
+							21,
+							18
+						]
 					],
 					"court": "2",
 					"stage": "Vòng bảng — Bảng B",
@@ -114,8 +153,14 @@
 					"p1": "Nguyễn Hoàng Hải Đăng",
 					"p2": "Trần Thái An",
 					"sets": [
-						[21, 14],
-						[21, 18]
+						[
+							21,
+							14
+						],
+						[
+							21,
+							18
+						]
 					],
 					"court": "",
 					"stage": "Vòng bảng — Bảng B",
@@ -126,9 +171,18 @@
 					"p1": "Nguyễn Hoàng Hải Đăng",
 					"p2": "Nguyễn Văn Phong",
 					"sets": [
-						[13, 21],
-						[21, 13],
-						[7, 15]
+						[
+							13,
+							21
+						],
+						[
+							21,
+							13
+						],
+						[
+							7,
+							15
+						]
 					],
 					"court": "",
 					"stage": "Vòng bảng — Bảng B",
@@ -139,7 +193,10 @@
 					"p1": "Nguyễn Cao Kế",
 					"p2": "Trần Thái An",
 					"sets": [
-						[9, 21]
+						[
+							9,
+							21
+						]
 					],
 					"court": "",
 					"stage": "Vòng bảng — Bảng B",
@@ -149,8 +206,14 @@
 					"p1": "Nguyễn Cao Kế",
 					"p2": "Nguyễn Văn Phong",
 					"sets": [
-						[14, 21],
-						[15, 21]
+						[
+							14,
+							21
+						],
+						[
+							15,
+							21
+						]
 					],
 					"court": "",
 					"stage": "Vòng bảng — Bảng B",
@@ -161,8 +224,14 @@
 					"p1": "Trần Thái An",
 					"p2": "Nguyễn Văn Phong",
 					"sets": [
-						[14, 21],
-						[16, 21]
+						[
+							14,
+							21
+						],
+						[
+							16,
+							21
+						]
 					],
 					"court": "",
 					"stage": "Vòng bảng — Bảng B",
@@ -204,8 +273,14 @@
 					"p1": "Bùi Tuệ San",
 					"p2": "Nguyễn Thụy Thảo Vy",
 					"sets": [
-						[15, 5],
-						[15, 5]
+						[
+							15,
+							5
+						],
+						[
+							15,
+							5
+						]
 					],
 					"court": "2",
 					"stage": "Vòng bảng — Bảng A",
@@ -216,8 +291,14 @@
 					"p1": "Bùi Tuệ San",
 					"p2": "Huỳnh Thị Thoại My",
 					"sets": [
-						[15, 12],
-						[15, 11]
+						[
+							15,
+							12
+						],
+						[
+							15,
+							11
+						]
 					],
 					"court": "2",
 					"stage": "Vòng bảng — Bảng A",
@@ -228,8 +309,14 @@
 					"p1": "Nguyễn Thụy Thảo Vy",
 					"p2": "Huỳnh Thị Thoại My",
 					"sets": [
-						[5, 15],
-						[7, 15]
+						[
+							5,
+							15
+						],
+						[
+							7,
+							15
+						]
 					],
 					"court": "2",
 					"stage": "Vòng bảng — Bảng A",
@@ -240,8 +327,14 @@
 					"p1": "Trần Minh Thư",
 					"p2": "Trần Thu Trang",
 					"sets": [
-						[15, 11],
-						[15, 3]
+						[
+							15,
+							11
+						],
+						[
+							15,
+							3
+						]
 					],
 					"court": "2",
 					"stage": "Vòng bảng — Bảng B",
@@ -252,8 +345,14 @@
 					"p1": "Trần Minh Thư",
 					"p2": "Lý Thanh Trúc",
 					"sets": [
-						[15, 12],
-						[15, 10]
+						[
+							15,
+							12
+						],
+						[
+							15,
+							10
+						]
 					],
 					"court": "3",
 					"stage": "Vòng bảng — Bảng B",
@@ -264,8 +363,14 @@
 					"p1": "Trần Thu Trang",
 					"p2": "Lý Thanh Trúc",
 					"sets": [
-						[10, 15],
-						[13, 15]
+						[
+							10,
+							15
+						],
+						[
+							13,
+							15
+						]
 					],
 					"court": "1",
 					"stage": "Vòng bảng — Bảng B",
@@ -319,8 +424,14 @@
 					"p1": "Phạm Đoàn Gia Hân",
 					"p2": "Nguyễn Ngọc Hạnh",
 					"sets": [
-						[15, 6],
-						[16, 14]
+						[
+							15,
+							6
+						],
+						[
+							16,
+							14
+						]
 					],
 					"court": "3",
 					"stage": "Vòng bảng — Bảng A",
@@ -331,9 +442,18 @@
 					"p1": "Phạm Đoàn Gia Hân",
 					"p2": "Mai Nguyễn Gia Nhi",
 					"sets": [
-						[11, 15],
-						[15, 10],
-						[15, 10]
+						[
+							11,
+							15
+						],
+						[
+							15,
+							10
+						],
+						[
+							15,
+							10
+						]
 					],
 					"court": "3",
 					"stage": "Vòng bảng — Bảng A",
@@ -344,8 +464,14 @@
 					"p1": "Nguyễn Ngọc Hạnh",
 					"p2": "Mai Nguyễn Gia Nhi",
 					"sets": [
-						[12, 15],
-						[8, 15]
+						[
+							12,
+							15
+						],
+						[
+							8,
+							15
+						]
 					],
 					"court": "3",
 					"stage": "Vòng bảng — Bảng A",
@@ -356,8 +482,14 @@
 					"p1": "Nguyễn Ngọc Yến Nhi",
 					"p2": "Phan Huỳnh Thanh Ngọc",
 					"sets": [
-						[13, 15],
-						[13, 15]
+						[
+							13,
+							15
+						],
+						[
+							13,
+							15
+						]
 					],
 					"court": "1",
 					"stage": "Vòng bảng — Bảng B",
@@ -368,8 +500,14 @@
 					"p1": "Nguyễn Ngọc Yến Nhi",
 					"p2": "Lê Thị Hồng Phượng",
 					"sets": [
-						[15, 10],
-						[15, 13]
+						[
+							15,
+							10
+						],
+						[
+							15,
+							13
+						]
 					],
 					"court": "1",
 					"stage": "Vòng bảng — Bảng B",
@@ -380,8 +518,14 @@
 					"p1": "Phan Huỳnh Thanh Ngọc",
 					"p2": "Lê Thị Hồng Phượng",
 					"sets": [
-						[15, 9],
-						[15, 4]
+						[
+							15,
+							9
+						],
+						[
+							15,
+							4
+						]
 					],
 					"court": "1",
 					"stage": "Vòng bảng — Bảng B",
@@ -392,8 +536,14 @@
 					"p1": "Thanh Ngọc",
 					"p2": "Gia Nhi",
 					"sets": [
-						[15, 10],
-						[15, 11]
+						[
+							15,
+							10
+						],
+						[
+							15,
+							11
+						]
 					],
 					"court": "3",
 					"stage": "Bán kết",
@@ -404,8 +554,14 @@
 					"p1": "Yến Nhi",
 					"p2": "Gia Hân",
 					"sets": [
-						[13, 15],
-						[7, 15]
+						[
+							13,
+							15
+						],
+						[
+							7,
+							15
+						]
 					],
 					"court": "1",
 					"stage": "Bán kết",
@@ -416,8 +572,14 @@
 					"p1": "Gia Nhi",
 					"p2": "Yến Nhi",
 					"sets": [
-						[15, 17],
-						[13, 15]
+						[
+							15,
+							17
+						],
+						[
+							13,
+							15
+						]
 					],
 					"court": "1",
 					"stage": "Tranh hạng 3",
@@ -477,7 +639,7 @@
 				"Phan Văn Thịnh - Lý Thanh Trúc",
 				"Thành Tô - Trần Thu Trang",
 				"Lương Công Triều - Trần Minh Thư",
-				"Sau Thành Lợi - Bùi Tuệ San",
+				"Nam - Bùi Tuệ San",
 				"Tuyên Bon - Huỳnh Trần Khánh Băng"
 			]
 		},
