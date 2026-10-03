@@ -4,6 +4,9 @@
 -- ============================================================
 
 -- Bảng lưu toàn bộ dữ liệu giải (1 dòng duy nhất, id = 1)
+-- Đây là bảng DUY NHẤT dùng cho production. Mã nguồn đọc bảng này qua
+-- env var SUPABASE_TABLE (mặc định 'app_data' — xem api/data.js).
+-- Đặt SUPABASE_TABLE=app_data trên Vercel để chỉ định tường minh.
 create table if not exists public.app_data (
   id integer primary key,
   data jsonb not null
@@ -18,17 +21,11 @@ create policy "public read app_data"
   using (true);
 
 -- ============================================================
--- Bảng TEST (tuỳ chọn) — dùng để thử chỉnh sửa dữ liệu
--- không ảnh hưởng dữ liệu thật. Chuyển qua bảng test bằng cách
--- đặt env var SUPABASE_TABLE=app_data_test trên Vercel.
+-- Nạp dữ liệu
 -- ============================================================
-create table if not exists public.app_data_test (
-  id integer primary key,
-  data jsonb not null
-);
-
-alter table public.app_data_test enable row level security;
-
-create policy "public read app_data_test"
-  on public.app_data_test for select
-  using (true);
+-- Sau khi tạo bảng, nạp dữ liệu giải bằng cách chạy `seed-app-data.sql`
+-- (Supabase SQL Editor → paste → Run). File đó ghi đè dòng id = 1.
+--
+-- Lưu ý: `public/data.json` trong repo chỉ là SEED DỰ PHÒNG — API chỉ
+-- đọc tới nó khi bảng này RỖNG (xem api/data.js). Sửa data.json rồi
+-- deploy KHÔNG làm thay đổi dữ liệu đang chạy; phải cập nhật bảng.

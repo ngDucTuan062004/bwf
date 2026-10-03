@@ -30,6 +30,7 @@ Trang web động theo dõi lịch thi đấu, bảng xếp hạng và kết qu�
 │   ├── data.js       # GET: đọc dữ liệu · PUT: lưu dữ liệu (cần mật khẩu)
 │   └── auth.js       # POST: xác thực mật khẩu quản trị
 ├── supabase-setup.sql # SQL tạo bảng (chạy 1 lần trên Supabase)
+├── seed-app-data.sql # SQL nạp dữ liệu giải vào bảng app_data (chạy 1 lần)
 ├── vercel.json       # Cấu hình Vercel
 └── package.json      # Dependency @supabase/supabase-js
 ```
@@ -60,6 +61,7 @@ npm test
 2. **Tạo Supabase project** (https://supabase.com — gói Free $0):
    - New project → đặt tên + mật khẩu database → tạo.
    - Mở **SQL Editor** → paste toàn bộ nội dung `supabase-setup.sql` → **Run** (tạo bảng `app_data`).
+   - Nạp dữ liệu giải: SQL Editor → paste `seed-app-data.sql` → **Run** (ghi dòng `id = 1`).
 
 3. **Lấy thông tin kết nối** (dashboard mới 2026):
    - Cách nhanh: bấm nút **Connect** (góc phải trên trang project) → chọn ngôn ngữ → thấy `URL` + key ngay trong hộp thoại.
@@ -71,21 +73,36 @@ npm test
 4. **Đặt biến môi trường trên Vercel** (Project → Settings → Environment Variables):
    - `SUPABASE_URL` = Project URL
    - `SUPABASE_SECRET_KEY` = secret key (hoặc `SUPABASE_SERVICE_ROLE_KEY` = service_role key nếu project cũ)
+   - `SUPABASE_TABLE` = `app_data` (bảng dữ liệu thật — đặt tường minh để khỏi nhầm với bảng test)
    - `ADMIN_PASSWORD` = mật khẩu quản trị bạn muốn (VD: `bwf2026`)
    - Tick cả 3 môi trường (Production, Preview, Development) → Save → **Redeploy** để áp dụng.
 
-5. **Mở trang** — dữ liệu ban đầu lấy từ `data.json`. Khi admin chỉnh sửa lần đầu, dữ liệu được lưu vào Supabase và từ đó mọi người đọc từ database.
+5. **Mở trang** — dữ liệu lấy từ bảng `app_data` trên Supabase. Mọi thay đổi ở chế độ admin được ghi vào đó và mọi người cùng thấy.
 
-## Test dữ liệu an toàn (bảng test)
+## Dữ liệu: seed vs database (quan trọng)
 
-Muốn thử chỉnh sửa mà không ảnh hưởng dữ liệu thật:
+`public/data.json` là **seed dự phòng**, KHÔNG phải nguồn dữ liệu đang chạy.
 
-1. Chạy `supabase-setup.sql` (đã kèm bảng `app_data_test`).
-2. Trên Vercel, thêm env var `SUPABASE_TABLE = app_data_test` → Redeploy.
-3. Test thoải mái — mọi thay đổi chỉ nằm trong bảng test.
-4. Test xong → **xoá** env var `SUPABASE_TABLE` → Redeploy → trang về dữ liệu thật.
+- API luôn đọc bảng `app_data` trên Supabase trước (`api/data.js`).
+- `public/data.json` **chỉ** được đọc tới khi bảng đó **rỗng**.
+- Sửa `data.json` rồi push/deploy **không** làm thay đổi dữ liệu đang chạy. Muốn nạp dữ liệu mới phải chạy `seed-app-data.sql` trong SQL Editor.
 
-> Ngoài ra, `public/data.json` là "nút reset" vĩnh viễn: xoá dòng `id=1` trong bảng đang dùng (Table Editor) → trang tự về dữ liệu seed từ `public/data.json`.
+**Reset về seed:** xoá dòng `id=1` trong Table Editor của `app_data` → trang tự rơi về `public/data.json`.
+
+**Test thử mà không đụng dữ liệu thật:** tạo bảng riêng rồi trỏ `SUPABASE_TABLE` sang nó.
+
+```sql
+create table if not exists public.app_data_test (
+  id integer primary key,
+  data jsonb not null
+);
+alter table public.app_data_test enable row level security;
+create policy "public read app_data_test"
+  on public.app_data_test for select using (true);
+```
+
+Trên Vercel đặt `SUPABASE_TABLE = app_data_test` → Redeploy → mọi thay đổi chỉ nằm trong bảng test.
+Test xong đặt lại `SUPABASE_TABLE = app_data` → Redeploy → trang về dữ liệu thật.
 
 ## Cách sử dụng
 
